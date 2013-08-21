@@ -5,10 +5,13 @@ http://usercake.com
 */
 
 require_once("models/config.php");
+
+global $userCakeDeployRoot;
+
 if (!securePage($_SERVER['PHP_SELF'])){die();}
 
 //Prevent the user visiting the logged in page if he is not logged in
-if(!isUserLoggedIn()) { header("Location: login.php"); die(); }
+if(!isUserLoggedIn()) { header("Location: ".$userCakeDeployRoot."/login.php"); die(); }
 
 if(!empty($_POST))
 {

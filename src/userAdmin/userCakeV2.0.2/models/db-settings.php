@@ -13,6 +13,9 @@ $db_table_prefix = "uc_";
 
 GLOBAL $errors;
 GLOBAL $successes;
+GLOBAL $userCakeDeployRoot;
+
+$userCakeDeployRoot = "/userAdmin";   //where all your userCake code is deployed
 
 $errors = array();
 $successes = array();

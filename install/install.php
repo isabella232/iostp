@@ -40,9 +40,11 @@ recursive_copy($userCakeDir, $userAdminDir);
 $result = file_get_contents("http://".$webhost_name.":".$webhost_port."/userAdmin/install/index.php?install=true");
 
 if( strpos($result,"Connection Failed") !== false ) {
-   echo "You will need to create a database\nEnter the following on the command line:\n\nprompt> ".$stackDir."/use_lampstack\nprompt> mysql -u ".$db_user." -p".$db_pass."\nmysql> create database ".$db_name.";\nmysql> quit;\n\nThen re-run this install script.\n";
+   echo "You will need to create a database\nEnter the following on the command line:\n\nprompt> ..if running a local sandbox, issue:  use_lampstack\nprompt> mysql -u ".$db_user." -p".$db_pass."\nmysql> create database ".$db_name.";\nmysql> quit;\n\nThen re-run this install script.\n";
 } else {
   delete($userAdminDir."/install");
 } 
+
+recursive_copy("../src/iostp", $htdocs);
 ?>
 

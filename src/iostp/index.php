@@ -1,12 +1,24 @@
-<!--
-	Visualising Xively Feeds with D3
-	Prepared by Paul Cheek
-	(c) 2013 LogMeIn, Inc.
--->
+<?php 
+/*
+UserCake Version: 2.0.1
+http://usercake.com
+*/
+require_once("userAdmin/models/config.php");
+if (!securePage($_SERVER['PHP_SELF'])){die("Authentication error");}
+require_once("userAdmin/models/header.php");
+require_once("include/constants.php");
 
+?>
 <!DOCTYPE html>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en" > <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+
+
+<!--
+	Original incarnation was as 'channel-viz' 
+	Prepared by Paul Cheek
+	(c) 2013 LogMeIn, Inc.
+-->
 
 <head>
 
@@ -70,8 +82,11 @@
 		<div class="row">
 			<div class="large-12 columns">
 				<h1 style="color: #FFF; text-shadow: 0px 1px 0px #000;">
-					Visualizing Xively Feeds
-				</h1>
+			          <?php echo $productName; ?>	
+				
+<a href="/userAdmin/logout.php" class="hide-for-medium hide-for-small"><img style="position: absolute; top: 10%; right: 0; border: 0;" width=70 height=70 src="img/logoutBtn.png" alt="Logout"></a>
+
+                                </h1>
 			</div>
 		</div>
 	</div>

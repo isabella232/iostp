@@ -8,7 +8,7 @@ require_once("models/config.php");
 if (!securePage($_SERVER['PHP_SELF'])){die();}
 
 //Prevent the user visiting the logged in page if he/she is already logged in
-if(isUserLoggedIn()) { header("Location: account.php"); die(); }
+if(isUserLoggedIn()) { header("Location: /index.php"); die(); }
 
 //Forms posted
 if(!empty($_POST))
@@ -72,7 +72,7 @@ if(!empty($_POST))
 					$_SESSION["userCakeUser"] = $loggedInUser;
 					
 					//Redirect to user account page
-					header("Location: account.php");
+					header("Location: /index.php");
 					die();
 				}
 			}
@@ -113,6 +113,7 @@ echo "
 <p>
 <label>&nbsp;</label>
 <input type='submit' value='Login' class='submit' />
+<input type='button' value='Sign Up' onclick='window.location.href = \"/userAdmin/register.php\";'/>
 </p>
 </form>
 </div>

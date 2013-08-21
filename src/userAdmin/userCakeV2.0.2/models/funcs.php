@@ -1122,7 +1122,7 @@ function securePage($uri){
 	//Separate document name from uri
 	$tokens = explode('/', $uri);
 	$page = $tokens[sizeof($tokens)-1];
-	global $mysqli,$db_table_prefix,$loggedInUser;
+	global $mysqli,$db_table_prefix,$loggedInUser,$userCakeDeployRoot;
 	//retrieve page details
 	$stmt = $mysqli->prepare("SELECT 
 		id,
@@ -1150,7 +1150,7 @@ function securePage($uri){
 	//If user is not logged in, deny access
 	elseif(!isUserLoggedIn()) 
 	{
-		header("Location: login.php");
+		header("Location: ".$userCakeDeployRoot."/login.php");
 		return false;
 	}
 	else {
@@ -1176,7 +1176,7 @@ function securePage($uri){
 			return true;
 		}
 		else {
-			header("Location: account.php");
+			header("Location: ".$userCakeDeployRoot."/account.php");
 			return false;	
 		}
 	}
