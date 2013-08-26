@@ -41,7 +41,8 @@ require_once("include/constants.php");
 
     <script>
        $(function() {
-               var keywords = ["Just a tab label","Long string","Short","Very very long string","tab","New tab","This is a new tab"]
+               tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close'>Remove Tab</span></li>";
+               var keywords = ["Just a tab label","Long string","Short","Very very long string","tab","New tab","This is a new tab"];
                try {
           	      $tabs = $('#tabs').tabs({scrollable:true, closable: true});
          	   } catch(e) {
@@ -53,7 +54,8 @@ require_once("include/constants.php");
                     content = 'This is the content for the '+label+'<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque hendrerit vulputate porttitor. Fusce purus leo, faucibus a sagittis congue, molestie tempus felis. Donec convallis semper enim, varius sagittis eros imperdiet in. Vivamus semper sem at metus mattis a aliquam neque ornare. Proin sed semper lacus.';
                     rnd = 'tab-' + Math.floor(Math.random()*10000);
                     try {
-                        $tabs.find("ul").append("<li><a href='#"+rnd+"'>"+rnd+"</li>");
+                        li = $( tabTemplate.replace( /#\{href\}/g, "#" + rnd ).replace( /#\{label\}/g, "label-"+rnd ) );
+                        $tabs.find("ul").append(li);
                         $tabs.append("<div id='"+rnd+"'>new content here: "+content+"</div>");
                         $tabs.tabs("refresh");
                         $tabs.tabs("select", $tabs.children().length-2);
@@ -69,6 +71,16 @@ require_once("include/constants.php");
 
                     return false;
 		       });
+
+               // close icon: removing the tab on click
+               $( document ).on( "click","#tabs span.ui-icon-close", function() {
+                 var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
+                 var i = $("#"+panelId).index();
+                 var delCurSelTab = $("#tabs").tabs("option","selected") == i-1;
+                 $( "#" + panelId ).remove();
+                 $tabs.tabs( "refresh" );
+                 if(delCurSelTab) $tabs.tabs("select", i-1);
+               });
        });
     </script>
 	<style type="text/css">
