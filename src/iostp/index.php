@@ -28,9 +28,49 @@ require_once("include/constants.php");
 
 	<link type="text/css" rel="stylesheet" href="css/normalize.css" />
 	<link type="text/css" rel="stylesheet" href="css/foundation.min.css" />
-	<link type="text/css" rel="stylesheet" href="css/rickshaw.min.css">
-	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/smoothness/jquery-ui.min.css" type="text/css" media="all" />
+	<link type="text/css" rel="stylesheet" href="css/rickshaw.min.css"/>
+	<link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.9.2.custom.css"/>
 
+	<script type="text/javascript" src="js/jquery-1.8.3.js"></script>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.9.2.custom.js"></script>
+	<script type="text/javascript" src="js/custom.modernizr.js"></script>
+	<script type="text/javascript" src="js/xivelyjs-1.0.0.min.js"></script>
+	<script type="text/javascript" src="js/d3.v2.js"></script>
+	<script type="text/javascript" src="js/rickshaw.min.js"></script>
+
+    <script>
+       $(function() {
+               var keywords = ["Just a tab label","Long string","Short","Very very long string","tab","New tab","This is a new tab"]
+               try {
+          	      $tabs = $('#tabs').tabs({scrollable:true, closable: true});
+         	   } catch(e) {
+         	      window.alert("badstuff");
+         	   }
+
+               $('#addTab').click(function(){
+                    var label = keywords[Math.floor(Math.random()*keywords.length)]
+                    content = 'This is the content for the '+label+'<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque hendrerit vulputate porttitor. Fusce purus leo, faucibus a sagittis congue, molestie tempus felis. Donec convallis semper enim, varius sagittis eros imperdiet in. Vivamus semper sem at metus mattis a aliquam neque ornare. Proin sed semper lacus.';
+                    rnd = 'tab-' + Math.floor(Math.random()*10000);
+                    try {
+                        $tabs.find("ul").append("<li><a href='#"+rnd+"'>"+rnd+"</li>");
+                        $tabs.append("<div id='"+rnd+"'>new content here: "+content+"</div>");
+                        $tabs.tabs("refresh");
+                        $tabs.tabs("select", $tabs.children().length-2);
+                    } catch(e) {
+                       window.alert("error: "+e);
+                    }
+//                    setTimeout(function(){
+//                       try {
+//                          $tabs.append(jQuery('#'+rnd));
+//                       } catch(e) { window.alert(e); }
+//                    },1000)
+
+
+                    return false;
+		       });
+       });
+    </script>
 	<style type="text/css">
 		body, html {
 			max-width: 100%;
@@ -66,16 +106,67 @@ require_once("include/constants.php");
 				);
 			}
 	</style>
-
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
-	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-	<script src="js/custom.modernizr.js"></script>
-	<script src="js/xivelyjs-1.0.0.min.js"></script>
-	<script src="js/d3.v2.js"></script>
-	<script src="js/rickshaw.min.js"></script>
+	<style>
+	body{
+		//font: 62.5% "Trebuchet MS", sans-serif;
+		margin: 100px;
+	}
+	#dialog-link {
+		padding: .4em 1em .4em 20px;
+		text-decoration: none;
+		position: relative;
+	}
+	#dialog-link span.ui-icon {
+		margin: 0 5px 0 0;
+		position: absolute;
+		left: .2em;
+		top: 50%;
+		margin-top: -8px;
+	}
+	#icons {
+		margin: 0;
+		padding: 0;
+	}
+	#icons li {
+		margin: 2px;
+		position: relative;
+		padding: 4px 0;
+		cursor: pointer;
+		float: left;
+		list-style: none;
+	}
+	#icons span.ui-icon {
+		float: left;
+		margin: 0 4px;
+	}
+	.fakewindowcontain .ui-widget-overlay {
+		position: absolute;
+	}
+	</style>
 
 </head>
 <body>
+
+<div style="margin:20px 0">
+			<a class="ui-state-default ui-corner-all" id="addTab" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">
+				<span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>
+				Add new tab
+			</a>
+		</div>
+<!-- Tabs -->
+<div id="tabs">
+	<ul>
+		<li><a href="#tabs-1">First</a></li>
+		<li><a href="#tabs-2">Second</a></li>
+		<li><a href="#tabs-3">Third</a></li>
+	</ul>
+	<div id="tabs-1">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</div>
+	<div id="tabs-2">Phasellus mattis tincidunt nibh. Cras orci urna, blandit id, pretium vel, aliquet ornare, felis. Maecenas scelerisque sem non nisl. Fusce sed lorem in enim dictum bibendum.</div>
+	<div id="tabs-3">Nam dui erat, auctor a, dignissim quis, sollicitudin eu, felis. Pellentesque nisi urna, interdum eget, sagittis et, consequat vestibulum, lacus. Mauris porttitor ullamcorper augue.</div>
+</div>
+
+
+
 
 	<!-- Header -->
 	<div style="background: #101C24;">

@@ -455,14 +455,13 @@
 		}
 		return false;
 	});
-
-	$('#setFeeds').click(function() {
-		setApiKey($('#apiKeyInput').val());
-		feeds = $('#feedsInput').val().replace(/\s+/g, '').split(',');
-		window.location = './index.html#key=' + $('#apiKeyInput').val() + '&feeds=' + $('#feedsInput').val();
+    $('#setFeeds').click(function() {
+        setApiKey($('#apiKeyInput').val());
+        feeds = $('#feedsInput').val().replace(/\s+/g, '').split(',');
+        window.location = window.location.href+'#key=' + $('#apiKeyInput').val() + '&feeds=' + $('#feedsInput').val();
         setFeeds(feeds);
-		return false;
-	});
+        return false;
+    });
 // END Initialization
 
 })( jQuery );
