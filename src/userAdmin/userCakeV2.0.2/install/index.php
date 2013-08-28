@@ -87,8 +87,8 @@ if(isset($_GET["install"]))
 	(3, 'email', 'noreply@ILoveUserCake.com'),
 	(4, 'activation', 'false'),
 	(5, 'resend_activation_threshold', '0'),
-	(6, 'language', 'models/languages/en.php'),
-	(7, 'template', 'models/site-templates/default.css');
+	(6, 'language', '/userAdmin/models/languages/en.php'),
+	(7, 'template', '/userAdmin/models/site-templates/default.css');
 	";
 	
 	$pages_sql = "CREATE TABLE IF NOT EXISTS `".$db_table_prefix."pages` (
