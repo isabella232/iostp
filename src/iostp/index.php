@@ -43,19 +43,33 @@ require_once("include/constants.php");
     <script type="text/javascript" src="js/xivelyKit.js"></script>
 
       <!--
-           One of these for each our observation kits ...or one for each set of observation kit types.
+           One of these for each our observation kit types.
            Eventually, we can setup some kind of registration process where teachers can create their own software and
            register them with the system and make them available to everyone or particular users...just set up php to
-           enter a new javascript tag here for every appropriate kit module.
+           inject a new javascript tag here for every appropriate kit module (it may be dependent on student or teacher id.
        -->
     <script type="text/javascript" src="js/exampleKit.js"></script>
 
 
-    <script type="text/javascript" src="js/configureKits.js"></script>
-
-
-
     <script>
+       function addObservationKit() {
+          var kitName = $("#kit_name").val();
+          var kitType = $("#kit_types input:checked")[0].value;
+          var kit = IOSTP.getInstance().getKitOfType(kitType);
+          kit.setName(kitName);
+          addKit(kit);
+       }
+       function addKit(kit) {
+           $tabs = $('#tabs').tabs({closable: true});
+           var ul = $tabs.find("ul");
+           var divId = "observationKit-" + kit.getId();
+           var li = $( tabTemplate.replace( /#\{href}/g, "#"+divId).replace( /#\{label\}/g, kit.getName() ) );
+           ul.append(li);
+           var div = kit.render();
+           div.attr("id",divId);
+           $tabs.append(div);
+           $tabs.tabs("refresh");
+       }
        $(function() {
            var kits = IOSTP.getInstance().configure("<?php
                 echo '[]'; // inject configuration data for this user here.
@@ -63,21 +77,58 @@ require_once("include/constants.php");
                 ?>");
 
            tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close'>Remove Tab</span></li>";
-           $tabs = $('#tabs').tabs({closable: true});
+
+           kits.forEach(function (kit) {
+               addKit(kit);
+           });
+           $tabs.tabs("select",0);
+
+
+           //setup add new observation kit dialog
+           var first = true;
+           IOSTP.getInstance().getKitTypes().forEach( function(kitType) {
+               $("#kit_types").append("<input type='radio' name='kit_type' value='"+kitType+"' "+(first?"checked":"")+">"+kitType+"</input><br/>");
+               first = false;
+           });
+
+           var addObservationKitDialog = $( "#dialog" ).dialog({
+              autoOpen: false,
+              modal: true,
+              buttons: {
+                Add: function() {
+                  addObservationKit();
+                  $( this ).dialog( "close" );
+                },
+                Cancel: function() {
+                  $( this ).dialog( "close" );
+                }
+              },
+              close: function() {
+                form[ 0 ].reset();
+              }
+           });
+           // addTab form: calls addTab function on submit and closes the dialog
+           var form = addObservationKitDialog.find( "form" ).submit(function( event ) {
+                  addObservationKit();
+              dialog.dialog( "close" );
+              event.preventDefault();
+           });
 
                $('#addTab').click(function(){
-                    var label = keywords[Math.floor(Math.random()*keywords.length)]
-                    content = 'This is the content for the '+label+'<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque hendrerit vulputate porttitor. Fusce purus leo, faucibus a sagittis congue, molestie tempus felis. Donec convallis semper enim, varius sagittis eros imperdiet in. Vivamus semper sem at metus mattis a aliquam neque ornare. Proin sed semper lacus.';
-                    rnd = 'tab-' + Math.floor(Math.random()*10000);
-                    try {
-                        li = $( tabTemplate.replace( /#\{href\}/g, "#" + rnd ).replace( /#\{label\}/g, "label-"+rnd ) );
-                        $tabs.find("ul").append(li);
-                        $tabs.append("<div id='"+rnd+"'>new content here: "+content+"</div>");
-                        $tabs.tabs("refresh");
-                        $tabs.tabs("select", $tabs.children().length-2);
-                    } catch(e) {
-                       window.alert("error: "+e);
-                    }
+
+                   addObservationKitDialog.dialog("open");
+//                    var label = keywords[Math.floor(Math.random()*keywords.length)]
+//                    content = 'This is the content for the '+label+'<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque hendrerit vulputate porttitor. Fusce purus leo, faucibus a sagittis congue, molestie tempus felis. Donec convallis semper enim, varius sagittis eros imperdiet in. Vivamus semper sem at metus mattis a aliquam neque ornare. Proin sed semper lacus.';
+//                    rnd = 'tab-' + Math.floor(Math.random()*10000);
+//                    try {
+//                        li = $( tabTemplate.replace( /#\{href\}/g, "#" + rnd ).replace( /#\{label\}/g, "label-"+rnd ) );
+//                        $tabs.find("ul").append(li);
+//                        $tabs.append("<div id='"+rnd+"'>new content here: "+content+"</div>");
+//                        $tabs.tabs("refresh");
+//                        $tabs.tabs("select", $tabs.children().length-2);
+//                    } catch(e) {
+//                       window.alert("error: "+e);
+//                    }
 //                    setTimeout(function(){
 //                       try {
 //                          $tabs.append(jQuery('#'+rnd));
@@ -116,28 +167,34 @@ require_once("include/constants.php");
 			box-shadow: inset 0px 0px 100px #f0f0f0;
 		}
 
-			.graphWrapper {
-				-moz-box-shadow:inset 0px 0px 50px 25px #ffffff;
-				-webkit-box-shadow:inset 0px 0px 50px 25px #ffffff;
-				box-shadow:inset 0px 0px 50px 25px #ffffff;
-				background-image: linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-				background-image: -o-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-				background-image: -moz-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-				background-image: -webkit-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-				background-image: -ms-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-				background-image: -webkit-gradient(
-					linear,
-					left bottom,
-					left top,
-					color-stop(0.3, rgb(255,255,255)),
-					color-stop(0.97, rgb(245,245,245))
-				);
-			}
+        .graphWrapper {
+            -moz-box-shadow:inset 0px 0px 50px 25px #ffffff;
+            -webkit-box-shadow:inset 0px 0px 50px 25px #ffffff;
+            box-shadow:inset 0px 0px 50px 25px #ffffff;
+            background-image: linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
+            background-image: -o-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
+            background-image: -moz-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
+            background-image: -webkit-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
+            background-image: -ms-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
+            background-image: -webkit-gradient(
+                linear,
+                left bottom,
+                left top,
+                color-stop(0.3, rgb(255,255,255)),
+                color-stop(0.97, rgb(245,245,245))
+            );
+        }
+
+
+        #dialog label, #dialog input { display:inline; }
+        #dialog label { margin-top: 0.5em; }
+        #kit_types {border: 1px; border-style:solid; border-color: light-gray; }
+
 	</style>
 	<style>
 	body{
 		//font: 62.5% "Trebuchet MS", sans-serif;
-		margin: 100px;
+		margin: 0px;   //WARNING: if you use a non-zero margin the dialogs don't drag properly.
 	}
 	#dialog-link {
 		padding: .4em 1em .4em 20px;
@@ -174,25 +231,28 @@ require_once("include/constants.php");
 
 </head>
 <body>
+<div id="dialog" title="New Observation Kit">
+  <form>
+    <fieldset class="ui-helper-reset">
+      <label for="kit_name">What do you want to call it?</label>
+      <input type="text" name="kit_name" id="kit_name" value="" class="ui-widget-content ui-corner-all" />
+      <label for="kit_types">What kind of kit?</label>
+      <div id="kit_types"></div>
+    </fieldset>
+  </form>
+</div>
 
 <div style="margin:20px 0">
 			<a class="ui-state-default ui-corner-all" id="addTab" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">
 				<span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>
-				Add new tab
+				Add a new Observation Kit
 			</a>
 		</div>
 <!-- Tabs -->
 <div id="tabs">
 	<ul>
-		<li><a href="#tabs-1">First</a></li>
-		<li><a href="#tabs-2">Second</a></li>
-		<li><a href="#tabs-3">Third</a></li>
 	</ul>
-	<div id="tabs-1">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</div>
-	<div id="tabs-2">Phasellus mattis tincidunt nibh. Cras orci urna, blandit id, pretium vel, aliquet ornare, felis. Maecenas scelerisque sem non nisl. Fusce sed lorem in enim dictum bibendum.</div>
-	<div id="tabs-3">Nam dui erat, auctor a, dignissim quis, sollicitudin eu, felis. Pellentesque nisi urna, interdum eget, sagittis et, consequat vestibulum, lacus. Mauris porttitor ullamcorper augue.</div>
 </div>
-
 
 
 

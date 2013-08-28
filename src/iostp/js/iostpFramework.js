@@ -1,7 +1,6 @@
 "use strict";
 
-function ObservationKit() {
-}
+function ObservationKit() {}
 
 ObservationKit.prototype.getName = function() {
     return this.name;
@@ -15,6 +14,15 @@ ObservationKit.prototype.setName = function(str) {
 ObservationKit.prototype.getType = function() {
     return "Base ObservationKit";
 };
+
+ObservationKit.prototype.getId = function() {
+    return this.id;
+}
+
+ObservationKit.prototype.setId = function(i) {
+    this.id = i;
+    return this;
+}
 
 ObservationKit.prototype.config = function(cfgString) {
     window.alert("ObservationKit.config() not defined, config string = "+cfgString);
@@ -42,6 +50,7 @@ IOSTP = (function () {   // declare 'Singleton' as the returned value of a self-
     var _instance = null;
     var _constructor = function () {
         this.kitRegistry = [];
+        this.uniqueId = 0;
     };
 
     // *************  prototypes will be "public" methods available from the instance
@@ -62,21 +71,21 @@ IOSTP = (function () {   // declare 'Singleton' as the returned value of a self-
     _constructor.prototype.getKitTypes = function () {
         var types = [];
         $.each(this.kitRegistry, function (i, kit) {
-            types.push({id: i, type: kit.getType()});
+            types.push(kit.getType());
         });
         return types;
     };
 
     /* returns a clone of a kit so it can be configured by the user */
     _constructor.prototype.getKit = function (id) {
-        return clone(this.kitRegistry[id]);
+        return clone(this.kitRegistry[id]).setId(_instance.uniqueId++);
     };
 
     /* get a kit of a particular type - used to reconstitute the user's state from textual config string */
     _constructor.prototype.getKitOfType = function (type) {
         for( var i=0; i<this.kitRegistry.length; i++ ) {
             if (this.kitRegistry[i].getType() == type) {
-                return clone(this.kitRegistry[i]);
+                return clone(this.kitRegistry[i]).setId(_instance.uniqueId++);
             }
         }
         return null;
@@ -91,7 +100,8 @@ IOSTP = (function () {   // declare 'Singleton' as the returned value of a self-
         var cfgData = JSON.parse(cfgDataStr);
 
         if (cfgData.length == 0) { //if nothing defined, need to prime the pump with a default kit
-            cfgData.push(JSON.parse('{ "type" : "Xively data kit", "name":"My 1st Observation Kit", "configData":"[dataStream: \'61916!random\']"}'));
+            cfgData.push(JSON.parse('{ "type" : "Xively Data Viewer", "name":"My 1st Observation Kit", "configData":"[dataStream: \'61916!random\']"}'));
+            console.log("after push, cfgData.length = "+cfgData.length);
         }
 
         var kits = [];

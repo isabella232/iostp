@@ -17,19 +17,20 @@ XivelyKit.prototype.getType = function() {
 };
 
 XivelyKit.prototype.render = function() {
-    return $('<div><P>My Xively div here</P></div>');
+    return $('<div><P>My Xively div here for: '+this.name+'</P></div>');
 };
 
 XivelyKit.prototype.config = function(cfgData) {
     if( cfgData === undefined ) {
         window.alert("here we would configure UI this kit");
     } else {
-        window.alert("I am configuring myself using this data: '"+cfgData+"'");
+      //  window.alert("DEBUG: I am configuring myself using this data: '"+cfgData+"'");
     }
+    return this;
 };
 
 XivelyKit.prototype.getConfig = function() {
-    return "my xively configuration data here";
+    return "my xively configuration data here for: "+this.name;
 };
 
 /*

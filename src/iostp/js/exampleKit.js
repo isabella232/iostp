@@ -13,11 +13,11 @@ ExampleKit.prototype.getName = function() {
 };
 
 ExampleKit.prototype.getType = function() {
-    return "Xively Data Viewer";
+    return "IOSTP Example Kit";
 };
 
 ExampleKit.prototype.render = function() {
-    return $('<div><P>My Xively div here</P></div>');
+    return $('<div><P>My IOSTP example div here: '+this.name+'</P></div>');
 };
 
 ExampleKit.prototype.config = function(cfgData) {
@@ -26,6 +26,7 @@ ExampleKit.prototype.config = function(cfgData) {
     } else {
         window.alert("I am configuring myself using this data: '"+cfgData+"'");
     }
+    return this;
 };
 
 ExampleKit.prototype.getConfig = function() {
