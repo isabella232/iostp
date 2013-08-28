@@ -38,16 +38,32 @@ require_once("include/constants.php");
 	<script type="text/javascript" src="js/xivelyjs-1.0.0.min.js"></script>
 	<script type="text/javascript" src="js/d3.v2.js"></script>
 	<script type="text/javascript" src="js/rickshaw.min.js"></script>
+    <script type="text/javascript" src="js/iostpFramework.js"></script>
+    <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript" src="js/xivelyKit.js"></script>
+
+      <!--
+           One of these for each our observation kits ...or one for each set of observation kit types.
+           Eventually, we can setup some kind of registration process where teachers can create their own software and
+           register them with the system and make them available to everyone or particular users...just set up php to
+           enter a new javascript tag here for every appropriate kit module.
+       -->
+    <script type="text/javascript" src="js/exampleKit.js"></script>
+
+
+    <script type="text/javascript" src="js/configureKits.js"></script>
+
+
 
     <script>
        $(function() {
-               tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close'>Remove Tab</span></li>";
-               var keywords = ["Just a tab label","Long string","Short","Very very long string","tab","New tab","This is a new tab"];
-               try {
-          	      $tabs = $('#tabs').tabs({scrollable:true, closable: true});
-         	   } catch(e) {
-         	      window.alert("badstuff");
-         	   }
+           var kits = IOSTP.getInstance().configure("<?php
+                echo '[]'; // inject configuration data for this user here.
+                           // Each element of the array is a JSON string: {type: typeString, name: nameString, configData:"data here"}
+                ?>");
+
+           tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close'>Remove Tab</span></li>";
+           $tabs = $('#tabs').tabs({closable: true});
 
                $('#addTab').click(function(){
                     var label = keywords[Math.floor(Math.random()*keywords.length)]
