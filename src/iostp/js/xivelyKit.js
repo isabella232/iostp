@@ -2,9 +2,23 @@
 
 function XivelyKit(myname) {
     this.name = myname;
+    this.graphs = [];
 }
 
 XivelyKit.prototype = new ObservationKit();  //inherit ObservationKit
+
+// Set xively API Key
+XivelyKit.prototype.setApiKey = function(key) {
+	xively.setKey(key);
+};
+
+XivelyKit.prototype.getGraph = function(units) {
+    if( this.graphs[units] === undefined ) {
+        this.graphs[units] = new Graph(units);
+        this.graphs[units].setDiv($(this.tag+' .graph').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.graphs[units].getId()).removeClass('hidden');
+    }
+    return this.graphs[units];
+}
 
 XivelyKit.prototype.constructor = XivelyKit; //correct constructor prototype to point to XivelyKit
 
@@ -17,27 +31,224 @@ XivelyKit.prototype.getType = function() {
 };
 
 XivelyKit.prototype.render = function() {
-    return $('<div><P>My Xively div here for: '+this.name+'</P></div>');
+    return $(this.getHtml());
 };
 
-XivelyKit.prototype.config = function(cfgData) {
-    if( cfgData === undefined ) {
+XivelyKit.prototype.config = function() {
+    this.tag = "#xivelyKit-"+this.getId();
+    $(this.tag+" .loading").removeClass('hidden');
+    if( this.getConfig() === undefined ) {
         window.alert("here we would configure UI this kit");
     } else {
-      //  window.alert("DEBUG: I am configuring myself using this data: '"+cfgData+"'");
+        this.kitConfig = JSON.parse(this.getConfig());
+        this.makeGraphs(this.kitConfig,"6hours",1000);
     }
+    $(this.tag+" .loading").addClass('hidden');
     return this;
-};
-
-XivelyKit.prototype.getConfig = function() {
-    return "my xively configuration data here for: "+this.name;
 };
 
 /*
  * now register it globally so it can be used elsewhere.
  */
-IOSTP.getInstance().register( new XivelyKit() );
+var theKit = new XivelyKit();
+theKit.setApiKey("5YoNwaN3vQzjn8RDnk7Hk4A8pvX1EhOLf2axaARP5gtwPmWq");  //TODO:  are we hardcoding in an api key?
+
+IOSTP.getInstance().register( theKit );
 
 $(function () {
 
 });
+
+
+function Graph(units) {
+    this.units = units;
+}
+Graph.prototype.getUnits = function() {
+    return this.units;
+};
+
+Graph.prototype.getId = function() {
+    return "graph-"+this.units.replace(/[^a-zA-Z0-9]/g, "");
+};
+
+Graph.prototype.setDiv = function(d) {
+    this.div = d;
+    return d;
+};
+Graph.prototype.getDiv = function() {
+    return this.div;
+};
+
+
+XivelyKit.prototype.makeGraphs = function(configData, duration, interval) {
+
+    var myKit = this;
+
+    configData.forEach(function(cfg) {
+
+        var feedId, datastreamId;
+        var loc = cfg.dataStream.indexOf("!");
+        if(loc > 0) {
+            feedId = cfg.dataStream.substring(0, loc);
+            datastreamId = cfg.dataStream.substring(loc+1);
+        }
+        xively.feed.get(feedId, function(feedData) {
+            if(feedData.datastreams) {
+                feedData.datastreams.forEach(function(datastream) {
+                    if( datastream.id == datastreamId ) {
+                        var graph = myKit.getGraph( (datastream.unit && datastream.unit.label) ? datastream.unit.label : "no units");
+
+                        var now = new Date();
+                        var then = new Date();
+                        var diff = null;
+                        if(duration == '6hours') diff = 6*60*60*1000;
+                        if(duration == '1day') diff = 24*60*60*1000;
+                        if(duration == '1week') diff = 7*24*60*60*1000;
+                        if(duration == '1month') diff = 365*24*60*60*1000/12;
+                        if(duration == '90days') diff = 90*24*60*60*1000;
+                        then.setTime(now.getTime() - diff);
+
+                        xively.datastream.history(feedId, datastreamId, {duration: duration, interval: interval, limit: 1000}, function(datastreamData) {
+
+                            var series = [];
+                            var points = [];
+
+                            // Historical Datapoints
+                            if(datastreamData.datapoints) {
+
+                                // Add Each Datapoint to Array
+                                datastreamData.datapoints.forEach(function(datapoint) {
+                                    points.push({x: new Date(datapoint.at).getTime()/1000.0, y: parseFloat(datapoint.value)});
+                                });
+
+                                // Add Datapoints Array to Graph Series Array
+                                series.push({
+                                    name: datastream.id,  //TODO:  Should we use datastream.title here??
+                                    data: points,
+                                    color: '#FF0000'// + dataColor
+                                });
+
+                                // Build Graph
+                                var rickshawGraph = new Rickshaw.Graph( {
+                                    element: document.querySelector(myKit.tag+' #'+graph.getId()),
+                                    width: 600,
+                                    height: 200,
+                                    renderer: 'line',
+                                    min: parseFloat(datastream.min_value) - .25*(parseFloat(datastream.max_value) - parseFloat(datastream.min_value)),
+                                    max: parseFloat(datastream.max_value) + .25*(parseFloat(datastream.max_value) - parseFloat(datastream.min_value)),
+                                    padding: {
+                                        top: 0.02,
+                                        right: 0.02,
+                                        bottom: 0.02,
+                                        left: 0.02
+                                    },
+                                    series: series
+                                });
+
+                                graph.setRickshawGraph(rickshawGraph);
+
+                                rickshawGraph.render();
+
+                                var ticksTreatment = 'glow';
+
+                                // Define and Render X Axis (Time Values)
+                                var xAxis = new Rickshaw.Graph.Axis.Time( {
+                                    graph: rickshawGraph,
+                                    ticksTreatment: ticksTreatment
+                                });
+                                xAxis.render();
+
+                                // Define and Render Y Axis (Datastream Values)
+                                var yAxis = new Rickshaw.Graph.Axis.Y( {
+                                    graph: rickshawGraph,
+                                    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+                                    ticksTreatment: ticksTreatment
+                                });
+                                yAxis.render();
+
+                                // Enable Datapoint Hover Values
+                                var hoverDetail = new Rickshaw.Graph.HoverDetail({
+                                    graph: rickshawGraph,
+                                    formatter: function(series, x, y) {
+                                        var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + ' padding: 4px;"></span>';
+                                        var content = swatch + "&nbsp;&nbsp;" + parseFloat(y) + '&nbsp;&nbsp;<br>';
+                                        return content;
+                                    }
+                                });
+
+
+                                //NOTE:  here is how you modify Rickshaw so that a slider can handle more than one graph:
+                                //       http://stackoverflow.com/questions/13408497/one-slider-two-graphs-with-rickshaw-and-d3-js/13421407#13421407
+                            }
+                        });
+
+        //                    $('#feed-' + feedId + ' .datastreams .datastream-' + datastream.id + ' .slider').prop('id', 'slider-' + feedId + '-' + datastream.id);
+        //                    var slider = new Rickshaw.Graph.RangeSlider({
+        //                        graph: graph,
+        //                        element: $('#slider-' + feedId + '-' + datastream.id)
+        //                    });
+                    }
+                });
+
+            } else {
+                window.alert("no datastreams found");
+            }
+        });
+	});
+    $(myKit.tag+' .duration-hour').click(function() {
+        $('#loadingData').foundation('reveal', 'open');
+        updateFeeds(null, thisFeedDatastreams, '6hours', 30);
+        return false;
+    });
+
+    $(myKit.tag + ' .duration-day').click(function() {
+        $('#loadingData').foundation('reveal', 'open');
+        updateFeeds(null, thisFeedDatastreams, '1day', 60);
+        return false;
+    });
+
+    $(myKit.tag + ' .duration-week').click(function() {
+        $('#loadingData').foundation('reveal', 'open');
+        updateFeeds(null, thisFeedDatastreams, '1week', 900);
+        return false;
+    });
+
+    $(myKit.tag + ' .duration-month').click(function() {
+        $('#loadingData').foundation('reveal', 'open');
+        updateFeeds(null, thisFeedDatastreams, '1month', 1800);
+        return false;
+    });
+
+    $(myKit.tag + ' .duration-90').click(function() {
+        $('#loadingData').foundation('reveal', 'open');
+        updateFeeds(null, thisFeedDatastreams, '90days', 10800);
+        return false;
+    });
+};
+
+XivelyKit.prototype.getHtml = function () {
+    return '\
+        <div id="xivelyKit-'+this.getId()+'">\
+            <div class="loading large-12 columns">\
+                <h2 class="subheader value">Loading Feed Data...</h2>\
+            </div>\
+            <div class="graphs">\
+                <div class="graphWrapper" style="margin-top: 15px; padding: 10px; text-align: center;">\
+                    <div class="graph hidden" style="width: 600px; margin: auto;"></div>\
+                </div>\
+            </div>\
+			<div class="slider hidden" style="width: 600px; height: 15px; margin: auto;"></div>\
+            <div class="row">\
+                <div class="large-12 columns">\
+                    <div class="button-group" style="float: right;">\
+                        <a href="#" class="small button secondary duration-hour">6 Hrs</a>\
+                        <a href="#" class="small button secondary duration-day">Day</a>\
+                        <a href="#" class="small button secondary duration-week">Week</a>\
+                        <a href="#" class="small button secondary duration-month">Month</a>\
+                        <a href="#" class="small button secondary duration-90">90 Days</a>\
+                    </div>\
+                </div>\
+            </div>\
+        </div>\
+    ';
+}

@@ -111,9 +111,10 @@
 								}
 
 								// Fill Datastream UI with Data
-								$('#feed-' + feedId + ' .datastreams .datastream-' + datastream.id + ' .datastream-name').html(datastream.id);
-								$('#feed-' + feedId + ' .datastreams .datastream-' + datastream.id + ' .datastream-value').html(datastream.current_value);
 
+
+                                //*************************  define name & lastest value (and units) **********************************************
+								$('#feed-' + feedId + ' .datastreams .datastream-' + datastream.id + ' .datastream-name').html(datastream.id);
 								// Include Datastream Unit (If Available)
 								if(datastream.unit) {
 									if(datastream.unit.symbol) {
@@ -124,6 +125,9 @@
 								} else {
 									$('#feed-' + feedId + ' .datastreams .datastream-' + datastream.id + ' .datastream-value').html(datastream.current_value);
 								}
+                                //******************************************************************************************************************
+
+                                // make sure it is visible
 								$('.datastream-' + datastream.id).removeClass('hidden');
 
 								// Historical Datapoints
@@ -138,12 +142,11 @@
 									series.push({
 										name: datastream.id,
 										data: points,
-										color: '#' + dataColor
+										color: '#FF0000'// + dataColor
 									});
 
 									// Initialize Graph DOM Element
 									$('#feed-' + feedId + ' .datastreams .datastream-' + datastream.id + ' .graph').attr('id', 'graph-' + feedId + '-' + datastream.id);
-
 						 			// Build Graph
 									var graph = new Rickshaw.Graph( {
 										element: document.querySelector('#graph-' + feedId + '-' + datastream.id),
@@ -249,10 +252,10 @@
 					// Duplicate Example to Build Feed UI
 					$('#exampleFeed').clone().appendTo('#feeds').attr('id', 'feed-' + id).removeClass('hidden');
 
-					// ID
+					// Title
 					$('#feed-' + data.id + ' .title .value').html(data.title);
 
-					// Title
+					// ID
 					$('#feed-' + data.id + ' .id .value').html(data.id);
 
 					// Description
@@ -266,11 +269,11 @@
 					$('#feed-' + data.id + ' .link .value').html('<a href="https://xively.com/feeds/' + data.id + '/">View on Xively &raquo;</a>');
 
 					// Creator
-					var creator = /[^/]*$/.exec(data.creator)[0];
-					$('#feed-' + data.id + ' .creator .value').html('<a href="' + data.creator + '">' + creator + '</a>');
+					$('#feed-' + data.id + ' .creator .value').html('<a href="' + data.creator + '">' + /[^/]*$/.exec(data.creator)[0] + '</a>');
 
 					// Date Updated
 					$('#feed-' + data.id + ' .updated .value').html(data.updated);
+
 
 					// Tags
 					if(data.tags) {

@@ -24,13 +24,16 @@ ObservationKit.prototype.setId = function(i) {
     return this;
 }
 
-ObservationKit.prototype.config = function(cfgString) {
-    window.alert("ObservationKit.config() not defined, config string = "+cfgString);
+ObservationKit.prototype.setConfig = function(data) {
+    this.configData = data;
     return this;
+};
+ObservationKit.prototype.config = function() {
+    window.alert("ObservationKit.config() called - method should be overridden");
 };
 
 ObservationKit.prototype.getConfig = function() {
-    window.alert("ObservationKit.getConfig() not defined");
+    return this.configData;
 };
 
 ObservationKit.prototype.render = function() {
@@ -100,7 +103,8 @@ IOSTP = (function () {   // declare 'Singleton' as the returned value of a self-
         var cfgData = JSON.parse(cfgDataStr);
 
         if (cfgData.length == 0) { //if nothing defined, need to prime the pump with a default kit
-            cfgData.push(JSON.parse('{ "type" : "Xively Data Viewer", "name":"My 1st Observation Kit", "configData":"[dataStream: \'61916!random\']"}'));
+            var defaultKitConfig = '{ "type" : "Xively Data Viewer", "name":"My 1st Observation Kit", "configData":"[{\\"dataStream\\": \\"61916!random3600\\"}]"}';
+            cfgData.push(JSON.parse(defaultKitConfig));
             console.log("after push, cfgData.length = "+cfgData.length);
         }
 
@@ -108,7 +112,7 @@ IOSTP = (function () {   // declare 'Singleton' as the returned value of a self-
         cfgData.forEach(function (cfg) {
             var kit = _instance.getKitOfType(cfg.type);
             if (kit != null) {
-                kits.push(kit.setName(cfg.name).config(cfg.configData));
+                kits.push(kit.setName(cfg.name).setConfig(cfg.configData));
             }
         });
         return kits;

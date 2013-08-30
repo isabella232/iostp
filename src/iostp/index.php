@@ -65,10 +65,13 @@ require_once("include/constants.php");
            var divId = "observationKit-" + kit.getId();
            var li = $( tabTemplate.replace( /#\{href}/g, "#"+divId).replace( /#\{label\}/g, kit.getName() ) );
            ul.append(li);
-           var div = kit.render();
+           var div = $("<div></div>");
            div.attr("id",divId);
+           div.append(kit.render());
            $tabs.append(div);
+           kit.config();
            $tabs.tabs("refresh");
+           $tabs.tabs("select", $tabs.tabs("length")-1);
        }
        $(function() {
            var kits = IOSTP.getInstance().configure("<?php
@@ -81,8 +84,6 @@ require_once("include/constants.php");
            kits.forEach(function (kit) {
                addKit(kit);
            });
-           $tabs.tabs("select",0);
-
 
            //setup add new observation kit dialog
            var first = true;
@@ -115,28 +116,8 @@ require_once("include/constants.php");
            });
 
                $('#addTab').click(function(){
-
                    addObservationKitDialog.dialog("open");
-//                    var label = keywords[Math.floor(Math.random()*keywords.length)]
-//                    content = 'This is the content for the '+label+'<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque hendrerit vulputate porttitor. Fusce purus leo, faucibus a sagittis congue, molestie tempus felis. Donec convallis semper enim, varius sagittis eros imperdiet in. Vivamus semper sem at metus mattis a aliquam neque ornare. Proin sed semper lacus.';
-//                    rnd = 'tab-' + Math.floor(Math.random()*10000);
-//                    try {
-//                        li = $( tabTemplate.replace( /#\{href\}/g, "#" + rnd ).replace( /#\{label\}/g, "label-"+rnd ) );
-//                        $tabs.find("ul").append(li);
-//                        $tabs.append("<div id='"+rnd+"'>new content here: "+content+"</div>");
-//                        $tabs.tabs("refresh");
-//                        $tabs.tabs("select", $tabs.children().length-2);
-//                    } catch(e) {
-//                       window.alert("error: "+e);
-//                    }
-//                    setTimeout(function(){
-//                       try {
-//                          $tabs.append(jQuery('#'+rnd));
-//                       } catch(e) { window.alert(e); }
-//                    },1000)
-
-
-                    return false;
+                   return false;
 		       });
 
                // close icon: removing the tab on click
@@ -231,44 +212,45 @@ require_once("include/constants.php");
 
 </head>
 <body>
-<div id="dialog" title="New Observation Kit">
-  <form>
-    <fieldset class="ui-helper-reset">
-      <label for="kit_name">What do you want to call it?</label>
-      <input type="text" name="kit_name" id="kit_name" value="" class="ui-widget-content ui-corner-all" />
-      <label for="kit_types">What kind of kit?</label>
-      <div id="kit_types"></div>
-    </fieldset>
-  </form>
-</div>
-
-<div style="margin:20px 0">
-			<a class="ui-state-default ui-corner-all" id="addTab" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">
-				<span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>
-				Add a new Observation Kit
-			</a>
-		</div>
-<!-- Tabs -->
-<div id="tabs">
-	<ul>
-	</ul>
-</div>
-
-
-
 	<!-- Header -->
 	<div style="background: #101C24;">
 		<div class="row">
 			<div class="large-12 columns">
 				<h1 style="color: #FFF; text-shadow: 0px 1px 0px #000;">
-			          <?php echo $productName; ?>	
-				
-<a href="/userAdmin/logout.php" class="hide-for-medium hide-for-small"><img style="position: absolute; top: 10%; right: 0; border: 0;" width=70 height=70 src="img/logoutBtn.png" alt="Logout"></a>
-
-                                </h1>
+			          <?php echo $productName; ?>
+                      <a href="/userAdmin/logout.php" class="hide-for-medium hide-for-small"><img style="position: absolute; top: 10%; right: 0; border: 0;" width=70 height=70 src="img/logoutBtn.png" alt="Logout"></a>
+                </h1>
 			</div>
 		</div>
 	</div>
+
+
+
+    <div id="dialog" title="New Observation Kit">
+      <form>
+        <fieldset class="ui-helper-reset">
+          <label for="kit_name">What do you want to call it?</label>
+          <input type="text" name="kit_name" id="kit_name" value="" class="ui-widget-content ui-corner-all" />
+          <label for="kit_types">What kind of kit?</label>
+          <div id="kit_types"></div>
+        </fieldset>
+      </form>
+    </div>
+
+    <div style="margin:20px 0">
+                <a class="ui-state-default ui-corner-all" id="addTab" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">
+                    <span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>
+                    Add a new Observation Kit
+                </a>
+            </div>
+    <!-- Tabs -->
+    <div id="tabs">
+        <ul>
+        </ul>
+    </div>
+
+
+
 	<!-- Form -->
 	<div id="form" style="background: #F0F0F0; border-bottom: 1px solid #CCC; padding: 25px; padding-bottom: 15px;">
 		<div class="row">
@@ -559,6 +541,11 @@ require_once("include/constants.php");
 		</div>
 	</div>
 
+
+
+
+
+    <!-- TODO:  keep these -->
 	<!-- Modals -->
 	<div id="loadingData" class="reveal-modal small text-center">
 		<br/><br/><h2 class="subheader">Loading...</h2><br/><br/>
