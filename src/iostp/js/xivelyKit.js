@@ -252,7 +252,12 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                 $('.timeControl').removeClass("hidden");
                                 var slider = new Rickshaw.Graph.RangeSlider({
                                     graph: graph.getRickshawGraph(),
-                                    element: $(myKit.tag + ' .slider')
+                                    element: $(myKit.tag + ' .slider'),
+                                    onslide: function(min,max) {
+                                        var tzOffset = new Date().getTimezoneOffset();
+                                        $('#fromTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+min*1000));
+                                        $('#toTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+max*1000));
+                                    }
                                 });
 
 
