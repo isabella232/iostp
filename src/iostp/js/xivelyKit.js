@@ -82,14 +82,12 @@ XivelyKit.prototype.config = function() {
     $('#toTimestamp').datetimepicker('option', 'maxDate', new Date());
 
     this.tag = "#xivelyKit-"+this.getId();
-    $(this.tag+" .loading").removeClass('hidden');
     if( this.getConfig() === undefined ) {
         window.alert("here we would configure UI this kit");
     } else {
         this.kitConfig = JSON.parse(this.getConfig());
         this.makeGraphs(this.kitConfig,new Date((new Date()).getTime()-6*60*60*1000),new Date());
     }
-    $(this.tag+" .loading").addClass('hidden');
 
 
     return this;
@@ -136,6 +134,8 @@ Graph.prototype.getRickshawGraph = function() {
 XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
     var myKit = this;
+
+    $(myKit.tag+" .loading").removeClass('hidden');
 
     configData.forEach(function(cfg) {
 
@@ -251,7 +251,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
                                 $('.timeControl').removeClass("hidden");
                                 var slider = new Rickshaw.Graph.RangeSlider({
-                                    graph: graph.getRickshawGraph(),
+                                    graph: [graph.getRickshawGraph()],
                                     element: $(myKit.tag + ' .slider'),
                                     onslide: function(min,max) {
                                         var tzOffset = new Date().getTimezoneOffset();
@@ -264,6 +264,9 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                 //NOTE:  here is how you modify Rickshaw so that a slider can handle more than one graph:
                                 //       http://stackoverflow.com/questions/13408497/one-slider-two-graphs-with-rickshaw-and-d3-js/13421407#13421407
                             }
+
+                            $(myKit.tag+" .loading").addClass('hidden');
+
                         });
 
         //                    $('#feed-' + feedId + ' .datastreams .datastream-' + datastream.id + ' .slider').prop('id', 'slider-' + feedId + '-' + datastream.id);
