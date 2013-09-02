@@ -49,10 +49,12 @@ XivelyKit.prototype.config = function() {
     var myKit = this;
     $('#fromTimestamp').datetimepicker( {
         onClose:function() {
+            var to = $('#toTimestamp').datetimepicker('getDate');
             var from = $('#fromTimestamp').datetimepicker('getDate');
             var minTo = new Date(Math.min(new Date().getTime(),from.getTime()+6*60*60*1000));
             $('#toTimestamp').datepicker('option', 'minDate', minTo);
             $('#toTimestamp').datepicker('option', 'minDateTime', minTo);
+            myKit.makeGraphs(myKit.kitConfig, from, to);
         },
         beforeShow: function(input,inst)
         {
@@ -66,10 +68,13 @@ XivelyKit.prototype.config = function() {
 
     $('#toTimestamp').datetimepicker( {
         onClose:function() {
-            var to = $('#fromTimestamp').datetimepicker('getDate');
+            var to = $('#toTimestamp').datetimepicker('getDate');
+            var from = $('#fromTimestamp').datetimepicker('getDate');
             var maxFrom = new Date(to.getTime() - 6*60*60*1000);
             $('#fromTimestamp').datepicker('option', 'maxDateTime', maxFrom);
             $('#fromTimestamp').datepicker('option', 'maxDate', maxFrom);
+            myKit.makeGraphs(myKit.kitConfig, from, to);
+
         }
     });
     $('#toTimestamp').datetimepicker('setDate', new Date());
@@ -195,6 +200,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                     color: '#FF0000'// + dataColor
                                 });
 
+                                $(myKit.tag+' #'+graph.getId()).empty();
                                 // Build Graph
                                 var rickshawGraph = new Rickshaw.Graph( {
                                     element: document.querySelector(myKit.tag+' #'+graph.getId()),
