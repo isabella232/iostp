@@ -39,6 +39,7 @@ require_once("include/constants.php");
 	<script type="text/javascript" src="js/d3.v2.js"></script>
 	<script type="text/javascript" src="js/rickshaw.min.js"></script>
     <script type="text/javascript" src="js/iostpFramework.js"></script>
+    <script type="text/javascript" src="js/jquery-timepickerAddon.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
     <script type="text/javascript" src="js/xivelyKit.js"></script>
 
@@ -166,6 +167,9 @@ require_once("include/constants.php");
             );
         }
 
+        .ui-datepicker {
+            padding:15px;
+        }
 
         #dialog label, #dialog input { display:inline; }
         #dialog label { margin-top: 0.5em; }

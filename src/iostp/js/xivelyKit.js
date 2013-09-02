@@ -18,7 +18,11 @@ XivelyKit.prototype.getGraph = function(units) {
         this.graphs[units].setDiv($(this.tag+' .graph').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.graphs[units].getId()).removeClass('hidden');
     }
     return this.graphs[units];
-}
+};
+
+XivelyKit.prototype.getGraphs = function() {
+    return this.graphs;
+};
 
 XivelyKit.prototype.constructor = XivelyKit; //correct constructor prototype to point to XivelyKit
 
@@ -34,16 +38,55 @@ XivelyKit.prototype.render = function() {
     return $(this.getHtml());
 };
 
+XivelyKit.prototype.getTimespan = function() {
+    return this.timespan;
+};
+XivelyKit.prototype.setTimespan = function(t) {
+    this.timespan = t;
+};
+
 XivelyKit.prototype.config = function() {
+    var myKit = this;
+    $('#fromTimestamp').datetimepicker( {
+        onClose:function() {
+            var from = $('#fromTimestamp').datetimepicker('getDate');
+            var minTo = new Date(Math.min(new Date().getTime(),from.getTime()+6*60*60*1000));
+            $('#toTimestamp').datepicker('option', 'minDate', minTo);
+            $('#toTimestamp').datepicker('option', 'minDateTime', minTo);
+        },
+        beforeShow: function(input,inst)
+        {
+            inst.dpDiv.css({marginLeft: '-110px'});
+        }
+    });
+    var maxFrom = new Date( new Date().getTime() - 6*60*60*1000);
+    $('#fromTimestamp').datetimepicker('setDate', maxFrom);
+    $('#fromTimestamp').datetimepicker('option', 'maxDateTime', maxFrom);
+    $('#fromTimestamp').datetimepicker('option', 'maxDate', maxFrom);
+
+    $('#toTimestamp').datetimepicker( {
+        onClose:function() {
+            var to = $('#fromTimestamp').datetimepicker('getDate');
+            var maxFrom = new Date(to.getTime() - 6*60*60*1000);
+            $('#fromTimestamp').datepicker('option', 'maxDateTime', maxFrom);
+            $('#fromTimestamp').datepicker('option', 'maxDate', maxFrom);
+        }
+    });
+    $('#toTimestamp').datetimepicker('setDate', new Date());
+    $('#toTimestamp').datetimepicker('option', 'maxDateTime', new Date());
+    $('#toTimestamp').datetimepicker('option', 'maxDate', new Date());
+
     this.tag = "#xivelyKit-"+this.getId();
     $(this.tag+" .loading").removeClass('hidden');
     if( this.getConfig() === undefined ) {
         window.alert("here we would configure UI this kit");
     } else {
         this.kitConfig = JSON.parse(this.getConfig());
-        this.makeGraphs(this.kitConfig,"6hours",1000);
+        this.makeGraphs(this.kitConfig,new Date((new Date()).getTime()-6*60*60*1000),new Date());
     }
     $(this.tag+" .loading").addClass('hidden');
+
+
     return this;
 };
 
@@ -78,9 +121,14 @@ Graph.prototype.setDiv = function(d) {
 Graph.prototype.getDiv = function() {
     return this.div;
 };
+Graph.prototype.setRickshawGraph = function(g) {
+    this.rickshawGraph = g;
+};
+Graph.prototype.getRickshawGraph = function() {
+    return this.rickshawGraph;
+};
 
-
-XivelyKit.prototype.makeGraphs = function(configData, duration, interval) {
+XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
     var myKit = this;
 
@@ -98,17 +146,36 @@ XivelyKit.prototype.makeGraphs = function(configData, duration, interval) {
                     if( datastream.id == datastreamId ) {
                         var graph = myKit.getGraph( (datastream.unit && datastream.unit.label) ? datastream.unit.label : "no units");
 
-                        var now = new Date();
-                        var then = new Date();
-                        var diff = null;
-                        if(duration == '6hours') diff = 6*60*60*1000;
-                        if(duration == '1day') diff = 24*60*60*1000;
-                        if(duration == '1week') diff = 7*24*60*60*1000;
-                        if(duration == '1month') diff = 365*24*60*60*1000/12;
-                        if(duration == '90days') diff = 90*24*60*60*1000;
-                        then.setTime(now.getTime() - diff);
+                        var diff = end.getTime() - start.getTime();
+                        var options = null;
+                        if( diff <= 6*60*60*1000 ) {
+                            options = {interval:0};                      //6 hours
+                        } else if( diff <= 12*60*60*1000 ) {
+                            options = {interval:30};                     //12 hours
+                        } else if( diff <= 24*60*60*1000 ) {
+                            options = {interval:60};                     //1day
+                        } else if( diff <= 5*24*60*60*1000 ) {
+                            options = {interval:300};                    //5day
+                        } else if( diff <= 14*24*60*60*1000 ) {
+                            options = {interval:900};                    //14day
+                        } else if( diff <= 31*24*60*60*1000 ) {
+                            options = {interval:3600};                   //1month
+                        } else if( diff <= 90*24*60*60*1000 ) {
+                            options = {interval:10800};                  //90days
+                        } else if( diff <= 180*24*60*60*1000 ) {
+                            options = {interval:21600};                  //180days
+                        } else if( diff <= 365*24*60*60*1000 ) {
+                            options = {interval:43200};                  //1year
+                        }
 
-                        xively.datastream.history(feedId, datastreamId, {duration: duration, interval: interval, limit: 1000}, function(datastreamData) {
+                        if( options == null ) {  //TODO:  fix this - should never allow a timespan > 1 year
+                            alert("Invalid timespan");
+                        }
+                        options.limit = 1000;
+                        options.start= start;
+                        options.end = end;
+
+                        xively.datastream.history(feedId, datastreamId, options, function(datastreamData) {
 
                             var series = [];
                             var points = [];
@@ -176,6 +243,12 @@ XivelyKit.prototype.makeGraphs = function(configData, duration, interval) {
                                     }
                                 });
 
+                                $('.timeControl').removeClass("hidden");
+                                var slider = new Rickshaw.Graph.RangeSlider({
+                                    graph: graph.getRickshawGraph(),
+                                    element: $(myKit.tag + ' .slider')
+                                });
+
 
                                 //NOTE:  here is how you modify Rickshaw so that a slider can handle more than one graph:
                                 //       http://stackoverflow.com/questions/13408497/one-slider-two-graphs-with-rickshaw-and-d3-js/13421407#13421407
@@ -195,35 +268,7 @@ XivelyKit.prototype.makeGraphs = function(configData, duration, interval) {
             }
         });
 	});
-    $(myKit.tag+' .duration-hour').click(function() {
-        $('#loadingData').foundation('reveal', 'open');
-        updateFeeds(null, thisFeedDatastreams, '6hours', 30);
-        return false;
-    });
 
-    $(myKit.tag + ' .duration-day').click(function() {
-        $('#loadingData').foundation('reveal', 'open');
-        updateFeeds(null, thisFeedDatastreams, '1day', 60);
-        return false;
-    });
-
-    $(myKit.tag + ' .duration-week').click(function() {
-        $('#loadingData').foundation('reveal', 'open');
-        updateFeeds(null, thisFeedDatastreams, '1week', 900);
-        return false;
-    });
-
-    $(myKit.tag + ' .duration-month').click(function() {
-        $('#loadingData').foundation('reveal', 'open');
-        updateFeeds(null, thisFeedDatastreams, '1month', 1800);
-        return false;
-    });
-
-    $(myKit.tag + ' .duration-90').click(function() {
-        $('#loadingData').foundation('reveal', 'open');
-        updateFeeds(null, thisFeedDatastreams, '90days', 10800);
-        return false;
-    });
 };
 
 XivelyKit.prototype.getHtml = function () {
@@ -237,18 +282,15 @@ XivelyKit.prototype.getHtml = function () {
                     <div class="graph hidden" style="width: 600px; margin: auto;"></div>\
                 </div>\
             </div>\
-			<div class="slider hidden" style="width: 600px; height: 15px; margin: auto;"></div>\
             <div class="row">\
-                <div class="large-12 columns">\
-                    <div class="button-group" style="float: right;">\
-                        <a href="#" class="small button secondary duration-hour">6 Hrs</a>\
-                        <a href="#" class="small button secondary duration-day">Day</a>\
-                        <a href="#" class="small button secondary duration-week">Week</a>\
-                        <a href="#" class="small button secondary duration-month">Month</a>\
-                        <a href="#" class="small button secondary duration-90">90 Days</a>\
+                <div class="large-12 columns" style="overflow-x:auto; overflow-y:hidden">\
+                    <div class="timeControl hidden" style="width:100%;">\
+                        <input style="width:11em; float:left" type="text" name="fromTimestamp" id="fromTimestamp" value=""/>\
+            			<div class="slider" style="width: 400px; height: 15px; margin: auto; float:left; margin:15px;"></div>\
+                        <input style="width:11em; float:left" type="text" name="toTimestamp" id="toTimestamp" value=""/>\
                     </div>\
                 </div>\
             </div>\
         </div>\
     ';
-}
+};
