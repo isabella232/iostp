@@ -15,7 +15,8 @@ XivelyKit.prototype.setApiKey = function(key) {
 XivelyKit.prototype.getGraph = function(units) {
     if( this.graphs[units] === undefined ) {
         this.graphs[units] = new Graph(units);
-        this.graphs[units].setDiv($(this.tag+' .graph').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.tag.replace(/^#/,'')+"-"+this.graphs[units].getId()).removeClass('hidden');
+        this.graphs[units].setGraphDiv($(this.tag+' .graph').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.tag.replace(/^#/,'')+"-"+this.graphs[units].getId()).removeClass('hidden');
+        this.graphs[units].setLegendDiv($(this.tag+' .legend').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.tag.replace(/^#/,'')+"-"+this.graphs[units].getId()+'-legend').removeClass('hidden');
     }
     return this.graphs[units];
 };
@@ -56,13 +57,15 @@ XivelyKit.prototype.setTimespan = function(t) {
 
 XivelyKit.prototype.config = function() {
     var myKit = this;
-    $('#fromTimestamp').datetimepicker( {
+    var fromTimestamp = $('#fromTimestamp');
+    var toTimestamp = $('#toTimestamp');
+    fromTimestamp.datetimepicker( {
         onClose:function() {
-            var to = $('#toTimestamp').datetimepicker('getDate');
-            var from = $('#fromTimestamp').datetimepicker('getDate');
+            var to = toTimestamp.datetimepicker('getDate');
+            var from = fromTimestamp.datetimepicker('getDate');
             var minTo = new Date(Math.min(new Date().getTime(),from.getTime()+6*60*60*1000));
-            $('#toTimestamp').datepicker('option', 'minDate', minTo);
-            $('#toTimestamp').datepicker('option', 'minDateTime', minTo);
+            toTimestamp.datepicker('option', 'minDate', minTo);
+            toTimestamp.datepicker('option', 'minDateTime', minTo);
             myKit.makeGraphs(myKit.kitConfig, from, to);
         },
         beforeShow: function(input,inst)
@@ -71,24 +74,24 @@ XivelyKit.prototype.config = function() {
         }
     });
     var maxFrom = new Date( new Date().getTime() - 6*60*60*1000);
-    $('#fromTimestamp').datetimepicker('setDate', maxFrom);
-    $('#fromTimestamp').datetimepicker('option', 'maxDateTime', maxFrom);
-    $('#fromTimestamp').datetimepicker('option', 'maxDate', maxFrom);
+    fromTimestamp.datetimepicker('setDate', maxFrom);
+    fromTimestamp.datetimepicker('option', 'maxDateTime', maxFrom);
+    fromTimestamp.datetimepicker('option', 'maxDate', maxFrom);
 
-    $('#toTimestamp').datetimepicker( {
+    toTimestamp.datetimepicker( {
         onClose:function() {
-            var to = $('#toTimestamp').datetimepicker('getDate');
-            var from = $('#fromTimestamp').datetimepicker('getDate');
+            var to = toTimestamp.datetimepicker('getDate');
+            var from = fromTimestamp.datetimepicker('getDate');
             var maxFrom = new Date(to.getTime() - 6*60*60*1000);
-            $('#fromTimestamp').datepicker('option', 'maxDateTime', maxFrom);
-            $('#fromTimestamp').datepicker('option', 'maxDate', maxFrom);
+            fromTimestamp.datepicker('option', 'maxDateTime', maxFrom);
+            fromTimestamp.datepicker('option', 'maxDate', maxFrom);
             myKit.makeGraphs(myKit.kitConfig, from, to);
 
         }
     });
-    $('#toTimestamp').datetimepicker('setDate', new Date());
-    $('#toTimestamp').datetimepicker('option', 'maxDateTime', new Date());
-    $('#toTimestamp').datetimepicker('option', 'maxDate', new Date());
+    toTimestamp.datetimepicker('setDate', new Date());
+    toTimestamp.datetimepicker('option', 'maxDateTime', new Date());
+    toTimestamp.datetimepicker('option', 'maxDate', new Date());
 
     this.tag = "#xivelyKit-"+this.getId();
     if( this.getConfig() === undefined ) {
@@ -110,11 +113,8 @@ theKit.setApiKey("5YoNwaN3vQzjn8RDnk7Hk4A8pvX1EhOLf2axaARP5gtwPmWq");  //TODO:  
 
 IOSTP.getInstance().register( theKit );
 
-$(function () {
 
-});
-
-
+//*****************************************GRAPH WRAPPER***************************************
 function Graph(units) {
     this.units = units;
 }
@@ -126,24 +126,35 @@ Graph.prototype.getId = function() {
     return "graph-"+this.units.replace(/[^a-zA-Z0-9]/g, "");
 };
 
-Graph.prototype.setDiv = function(d) {
-    this.div = d;
+Graph.prototype.setGraphDiv = function(d) {
+    this.graphDiv = d;
     return d;
 };
-Graph.prototype.getDiv = function() {
-    return this.div;
+Graph.prototype.getGraphDiv = function() {
+    return this.graphDiv;
 };
+Graph.prototype.setLegendDiv = function(d) {
+    this.legendDiv = d;
+    return d;
+};
+Graph.prototype.getLegendDiv = function() {
+    return this.legendDiv;
+};
+
 Graph.prototype.setRickshawGraph = function(g) {
     this.rickshawGraph = g;
 };
 Graph.prototype.getRickshawGraph = function() {
     return this.rickshawGraph;
 };
+//*************************************END OF GRAPH WRAPPER************************************
+
 
 XivelyKit.prototype.clearGraphs = function() {
     for( var key in this.graphs ) {
         if( this.graphs.hasOwnProperty(key)) {
             $(this.tag+'-'+this.graphs[key].getId()).remove();
+            $(this.tag+'-'+this.graphs[key].getId()+'-legend').remove();
         }
     }
     this.graphs = {};
@@ -180,23 +191,23 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                         var diff = end.getTime() - start.getTime();
                         var options = null;
                         if( diff <= 6*60*60*1000 ) {
-                            options = {interval:0};                      //6 hours
+                            options = {interval:22};                     //6 hours
                         } else if( diff <= 12*60*60*1000 ) {
-                            options = {interval:30};                     //12 hours
+                            options = {interval:44};                     //12 hours
                         } else if( diff <= 24*60*60*1000 ) {
-                            options = {interval:60};                     //1day
+                            options = {interval:87};                     //1day
                         } else if( diff <= 5*24*60*60*1000 ) {
-                            options = {interval:300};                    //5day
+                            options = {interval:432};                    //5day
                         } else if( diff <= 14*24*60*60*1000 ) {
-                            options = {interval:900};                    //14day
+                            options = {interval:1210};                    //14day
                         } else if( diff <= 31*24*60*60*1000 ) {
-                            options = {interval:3600};                   //1month
+                            options = {interval:2679};                   //1month
                         } else if( diff <= 90*24*60*60*1000 ) {
-                            options = {interval:10800};                  //90days
+                            options = {interval:7776};                  //90days
                         } else if( diff <= 180*24*60*60*1000 ) {
-                            options = {interval:21600};                  //180days
+                            options = {interval:15552};                  //180days
                         } else if( diff <= 365*24*60*60*1000 ) {
-                            options = {interval:43200};                  //1year
+                            options = {interval:31536};                  //1year
                         }
 
                         if( options == null ) {  //TODO:  fix this - should never allow a timespan > 1 year
@@ -254,6 +265,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                     rickshawGraph.max = Math.max(rickshawGraph.max, ds_max_value);
                                     rickshawGraph.update();
                                 }
+
                                 rickshawGraph.render();
 
                                 var ticksTreatment = 'glow';
@@ -268,6 +280,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                 // Define and Render Y Axis (Datastream Values)
                                 var yAxis = new Rickshaw.Graph.Axis.Y( {
                                     graph: rickshawGraph,
+                                    orientation: 'left',
                                     tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
                                     ticksTreatment: ticksTreatment
                                 });
@@ -296,6 +309,19 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                             $('#toTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+max*1000));
                                         }
                                     });
+                                    for( var key in myKit.getGraphs() ) {
+                                        var graph = myKit.getGraphs()[key];
+                                        var legend = new Rickshaw.Graph.Legend( {
+                                                element: document.querySelector(myKit.tag+'-'+graph.getId()+'-legend'),
+                                                graph:   graph.getRickshawGraph()
+                                        } );
+                                        if( graph.getRickshawGraph().series.length > 1 ) {
+                                            var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
+                                                graph:  graph.getRickshawGraph(),
+                                                legend: legend
+                                            });
+                                        }
+                                    }
                                 }, 1000);
 
 
@@ -333,7 +359,8 @@ XivelyKit.prototype.getHtml = function () {
             </div>\
             <div class="graphs">\
                 <div class="graphWrapper" style="margin-top: 15px; padding: 10px; text-align: center;">\
-                    <div class="graph hidden" style="width: 600px; margin: auto;"></div>\
+                    <div class="graph hidden" ></div>\
+                    <div class="legend hidden"></div>\
                 </div>\
             </div>\
             <div class="row">\
