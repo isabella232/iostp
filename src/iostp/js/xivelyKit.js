@@ -2,7 +2,7 @@
 
 function XivelyKit(myname) {
     this.name = myname;
-    this.graphs = [];
+    this.graphs = {};
 }
 
 XivelyKit.prototype = new ObservationKit();  //inherit ObservationKit
@@ -15,7 +15,7 @@ XivelyKit.prototype.setApiKey = function(key) {
 XivelyKit.prototype.getGraph = function(units) {
     if( this.graphs[units] === undefined ) {
         this.graphs[units] = new Graph(units);
-        this.graphs[units].setDiv($(this.tag+' .graph').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.graphs[units].getId()).removeClass('hidden');
+        this.graphs[units].setDiv($(this.tag+' .graph').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.tag.replace(/^#/,'')+"-"+this.graphs[units].getId()).removeClass('hidden');
     }
     return this.graphs[units];
 };
@@ -23,6 +23,15 @@ XivelyKit.prototype.getGraph = function(units) {
 XivelyKit.prototype.getGraphs = function() {
     return this.graphs;
 };
+XivelyKit.prototype.getRickshawGraphs = function() {
+    var arr = [];
+    for( var key in this.graphs ) {
+        if( this.graphs.hasOwnProperty(key)) {
+            arr.push(this.graphs[key].getRickshawGraph());
+        }
+    }
+    return arr;
+}
 
 XivelyKit.prototype.constructor = XivelyKit; //correct constructor prototype to point to XivelyKit
 
@@ -131,11 +140,25 @@ Graph.prototype.getRickshawGraph = function() {
     return this.rickshawGraph;
 };
 
+XivelyKit.prototype.clearGraphs = function() {
+    for( var key in this.graphs ) {
+        if( this.graphs.hasOwnProperty(key)) {
+            $(this.tag+'-'+this.graphs[key].getId()).remove();
+        }
+    }
+    this.graphs = {};
+};
+
 XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
     var myKit = this;
 
+    this.clearGraphs();
+
     $(myKit.tag+" .loading").removeClass('hidden');
+
+    var datastreamsToLoad = configData.length;
+    var delayedTimeout = null;
 
     configData.forEach(function(cfg) {
 
@@ -148,6 +171,9 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
         xively.feed.get(feedId, function(feedData) {
             if(feedData.datastreams) {
                 feedData.datastreams.forEach(function(datastream) {
+                    var range = parseFloat(datastream.max_value) - parseFloat(datastream.min_value);
+                    var ds_min_value = parseFloat(datastream.min_value) - .25*range;
+                    var ds_max_value = parseFloat(datastream.max_value) + .25*range;
                     if( datastream.id == datastreamId ) {
                         var graph = myKit.getGraph( (datastream.unit && datastream.unit.label) ? datastream.unit.label : "no units");
 
@@ -182,7 +208,6 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
                         xively.datastream.history(feedId, datastreamId, options, function(datastreamData) {
 
-                            var series = [];
                             var points = [];
 
                             // Historical Datapoints
@@ -194,32 +219,41 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                 });
 
                                 // Add Datapoints Array to Graph Series Array
-                                series.push({
+                                var series = {
                                     name: datastream.id,  //TODO:  Should we use datastream.title here??
                                     data: points,
                                     color: '#FF0000'// + dataColor
-                                });
+                                };
 
-                                $(myKit.tag+' #'+graph.getId()).empty();
-                                // Build Graph
-                                var rickshawGraph = new Rickshaw.Graph( {
-                                    element: document.querySelector(myKit.tag+' #'+graph.getId()),
-                                    width: 600,
-                                    height: 200,
-                                    renderer: 'line',
-                                    min: parseFloat(datastream.min_value) - .25*(parseFloat(datastream.max_value) - parseFloat(datastream.min_value)),
-                                    max: parseFloat(datastream.max_value) + .25*(parseFloat(datastream.max_value) - parseFloat(datastream.min_value)),
-                                    padding: {
-                                        top: 0.02,
-                                        right: 0.02,
-                                        bottom: 0.02,
-                                        left: 0.02
-                                    },
-                                    series: series
-                                });
+                                var rickshawGraph = null;
+                                if( graph.getRickshawGraph() == undefined ) {
+                                    $(myKit.tag+'-'+graph.getId()).empty();
+                                    // Build Graph
+                                    rickshawGraph = new Rickshaw.Graph( {
+                                        element: document.querySelector(myKit.tag+'-'+graph.getId()),
+                                        width: 600,
+                                        height: 200,
+                                        renderer: 'line',
+                                        min: ds_min_value,
+                                        max: ds_max_value,
+                                        padding: {
+                                            top: 0.02,
+                                            right: 0.02,
+                                            bottom: 0.02,
+                                            left: 0.02
+                                        },
+                                        series: [series]
+                                    });
 
-                                graph.setRickshawGraph(rickshawGraph);
-
+                                    graph.setRickshawGraph(rickshawGraph);
+                                } else {
+                                    series.color = '#00FF00';
+                                    rickshawGraph = graph.getRickshawGraph();
+                                    rickshawGraph.series.push(series);
+                                    rickshawGraph.min = Math.min(rickshawGraph.min, ds_min_value);
+                                    rickshawGraph.max = Math.max(rickshawGraph.max, ds_max_value);
+                                    rickshawGraph.update();
+                                }
                                 rickshawGraph.render();
 
                                 var ticksTreatment = 'glow';
@@ -249,22 +283,27 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                     }
                                 });
 
-                                $('.timeControl').removeClass("hidden");
-                                var slider = new Rickshaw.Graph.RangeSlider({
-                                    graph: [graph.getRickshawGraph()],
-                                    element: $(myKit.tag + ' .slider'),
-                                    onslide: function(min,max) {
-                                        var tzOffset = new Date().getTimezoneOffset();
-                                        $('#fromTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+min*1000));
-                                        $('#toTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+max*1000));
-                                    }
-                                });
+
+                                if( delayedTimeout != null ) clearTimeout(delayedTimeout);
+                                delayedTimeout = setTimeout( function() {
+                                    $('.timeControl').removeClass("hidden");
+                                    var slider = new Rickshaw.Graph.RangeSlider({
+                                        graph: myKit.getRickshawGraphs(),
+                                        element: $(myKit.tag + ' .slider'),
+                                        onslide: function(min,max) {
+                                            var tzOffset = new Date().getTimezoneOffset();
+                                            $('#fromTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+min*1000));
+                                            $('#toTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+max*1000));
+                                        }
+                                    });
+                                }, 1000);
+
 
 
                                 //NOTE:  here is how you modify Rickshaw so that a slider can handle more than one graph:
                                 //       http://stackoverflow.com/questions/13408497/one-slider-two-graphs-with-rickshaw-and-d3-js/13421407#13421407
                             }
-
+                            datastreamsToLoad--;
                             $(myKit.tag+" .loading").addClass('hidden');
 
                         });
@@ -282,6 +321,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
             }
         });
 	});
+
 
 };
 

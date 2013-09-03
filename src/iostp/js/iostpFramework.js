@@ -103,7 +103,7 @@ IOSTP = (function () {   // declare 'Singleton' as the returned value of a self-
         var cfgData = JSON.parse(cfgDataStr);
 
         if (cfgData.length == 0) { //if nothing defined, need to prime the pump with a default kit
-            var defaultKitConfig = '{ "type" : "Xively Data Viewer", "name":"My 1st Observation Kit", "configData":"[{\\"dataStream\\": \\"61916!random3600\\"}]"}';
+            var defaultKitConfig = '{ "type" : "Xively Data Viewer", "name":"My 1st Observation Kit", "configData":"[{\\"dataStream\\": \\"61916!random3600\\"},{\\"dataStream\\": \\"61916!sine3600\\"}]"}';
             cfgData.push(JSON.parse(defaultKitConfig));
             console.log("after push, cfgData.length = "+cfgData.length);
         }
