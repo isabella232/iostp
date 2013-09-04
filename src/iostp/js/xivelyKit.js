@@ -165,23 +165,71 @@ XivelyKit.prototype.clearGraphs = function() {
     }
 };
 
+
+/*
+ * Each datastream goes in a particular graph (based on the index field of the configData).  When the datastreams are specified by the user
+ * we will want to put the datastream in a particular graph based on the units of the datastream... ie: all celsius data would be put in a single
+ * graph and all %Humidity would appear in their own graph.  So when creating the config, we define which graph we put a particular
+ * datastream into.  If the units change after the config is defined, the graphs will probably start looking pretty weird as celsius data would be
+ * graphed on the same graph as Farhenheit data.
+ */
 XivelyKit.prototype.setupGraphs = function(configData) {
     var myKit = this;
 
     var maxGraphId = 0;
-    for(var i=0; i<configData.length; i++ ) {
-        var cfg = configData[i];
+    for(var j=0; j<configData.length; j++ ) {
+        var cfg = configData[j];
         maxGraphId = Math.max(maxGraphId, cfg.index);
     }
     for( var i=0; i <= maxGraphId; i++ ) {
         this.graphs[i] = new Graph(i);
-        this.graphs[i].setGraphDiv($(this.tag+' .graph').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.tag.replace(/^#/,'')+"-"+this.graphs[i].getId()).removeClass('hidden');
-        this.graphs[i].setLegendDiv($(this.tag+' .legend').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.tag.replace(/^#/,'')+"-"+this.graphs[i].getId()+'-legend').removeClass('hidden');
-    }
-}
+        var rootId = this.tag.replace(/^#/,'');
+        $(this.tag+' .graphWrapper').clone().attr('id',rootId+'-graphWrapper-'+i).removeClass('graphWrapper').removeClass('hidden').appendTo($(this.tag+' .graphs'));
 
-XivelyKit.prototype.unitString = function(datastream) {
-    return (datastream.unit && datastream.unit.label) ? datastream.unit.label : "no units";
+        var graphId = rootId+"-"+this.graphs[i].getId();
+        var legendId= rootId+"-"+this.graphs[i].getId()+'-legend';
+
+        this.graphs[i].setGraphDiv( $(this.tag+'-graphWrapper-'+i+' .graph') .attr('id', graphId));
+        this.graphs[i].setLegendDiv($(this.tag+'-graphWrapper-'+i+' .legend').attr('id', legendId));
+    }
+};
+
+//TODO: we will need to create an addDatastream(cfg) which will create a new graph if necessary and add the cfg to the base configData
+
+
+/**
+ * Create options data for requesting datastream data
+ * @param start - start time
+ * @param end   - end time
+ * @returns {interval, limit, start, end}
+ */
+XivelyKit.prototype.makeOptions = function (start, end) {
+    var diff = end.getTime() - start.getTime();
+    var options = {
+        limit: 1000,
+        start: start,
+        end: end
+    };
+    if( diff <= 6*60*60*1000 ) {
+        options.interval = 22;                     //6 hours
+    } else if( diff <= 12*60*60*1000 ) {
+        options.interval = 44;                     //12 hours
+    } else if( diff <= 24*60*60*1000 ) {
+        options.interval = 87;                     //1day
+    } else if( diff <= 5*24*60*60*1000 ) {
+        options.interval = 432;                    //5day
+    } else if( diff <= 14*24*60*60*1000 ) {
+        options.interval = 1210;                    //14day
+    } else if( diff <= 31*24*60*60*1000 ) {
+        options.interval = 2679;                   //1month
+    } else if( diff <= 90*24*60*60*1000 ) {
+        options.interval = 7776;                  //90days
+    } else if( diff <= 180*24*60*60*1000 ) {
+        options.interval = 15552;                  //180days
+    } else {
+        options.interval = Math.ceil( (end.getTime()-start.getTime())/(1000*1000));  //>180days
+    }
+    return options;
 };
 
 XivelyKit.prototype.makeGraphs = function(configData, start, end) {
@@ -204,6 +252,9 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
             feedId = cfg.dataStream.substring(0, loc);
             datastreamId = cfg.dataStream.substring(loc+1);
         }
+
+        var options = myKit.makeOptions( start, end );
+
         xively.feed.get(feedId, function(feedData) {
             if(feedData.datastreams) {
                 feedData.datastreams.forEach(function(datastream) {
@@ -213,34 +264,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                     if( datastream.id == datastreamId ) {
                         var graph = myKit.getGraph( graphIndex );
 
-                        var diff = end.getTime() - start.getTime();
-                        var options = null;
-                        if( diff <= 6*60*60*1000 ) {
-                            options = {interval:22};                     //6 hours
-                        } else if( diff <= 12*60*60*1000 ) {
-                            options = {interval:44};                     //12 hours
-                        } else if( diff <= 24*60*60*1000 ) {
-                            options = {interval:87};                     //1day
-                        } else if( diff <= 5*24*60*60*1000 ) {
-                            options = {interval:432};                    //5day
-                        } else if( diff <= 14*24*60*60*1000 ) {
-                            options = {interval:1210};                    //14day
-                        } else if( diff <= 31*24*60*60*1000 ) {
-                            options = {interval:2679};                   //1month
-                        } else if( diff <= 90*24*60*60*1000 ) {
-                            options = {interval:7776};                  //90days
-                        } else if( diff <= 180*24*60*60*1000 ) {
-                            options = {interval:15552};                  //180days
-                        } else if( diff <= 365*24*60*60*1000 ) {
-                            options = {interval:31536};                  //1year
-                        }
-
-                        if( options == null ) {  //TODO:  fix this - should never allow a timespan > 1 year
-                            alert("Invalid timespan");
-                        }
-                        options.limit = 1000;
-                        options.start= start;
-                        options.end = end;
+                        graph.setUnits((datastream.unit && datastream.unit.label) ? datastream.unit.label : "no units");
 
                         xively.datastream.history(feedId, datastreamId, options, function(datastreamData) {
 
@@ -263,8 +287,11 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
                                 var rickshawGraph = null;
                                 if( graph.getRickshawGraph() == undefined ) {
-                                    $(myKit.tag+'-'+graph.getId()).empty();
+
+                                    $(myKit.tag+'-'+graph.getId()).empty();  //get rid of anything that is currently there
+
                                     // Build Graph
+                                    console.log("about to create a rickshaw graph on id: "+myKit.tag+'-'+graph.getId());
                                     rickshawGraph = new Rickshaw.Graph( {
                                         element: document.querySelector(myKit.tag+'-'+graph.getId()),
                                         width: 600,
@@ -374,13 +401,13 @@ XivelyKit.prototype.getHtml = function () {
                 <h2 class="subheader value">Loading Feed Data...</h2>\
             </div>\
             <div class="graphs">\
-                <div class="graphWrapper" style="margin-top: 15px; padding: 10px; text-align: center;">\
-                    <div class="graph hidden" ></div>\
-                    <div class="legend hidden"></div>\
+                <div class="graphWrapper hidden" >\
+                    <div class="graph" ></div>\
+                    <div class="legend"></div>\
                 </div>\
             </div>\
-            <div class="row">\
-                <div class="large-12 columns" style="overflow-x:auto; overflow-y:hidden">\
+            <div class="row" style="padding-left:20px"> <!-- TODO:  figure out why padding-left is needed -->\
+                <div class="large-12 columns" style="overflow-x:auto; margin-left:auto; margin-right:auto; overflow-y:hidden">\
                     <div class="timeControl hidden" style="width:100%;">\
                         <input style="width:11em; float:left" type="text" name="fromTimestamp" id="fromTimestamp" value=""/>\
             			<div class="slider" style="width: 400px; height: 15px; margin: auto; float:left; margin:15px;"></div>\
@@ -391,3 +418,10 @@ XivelyKit.prototype.getHtml = function () {
         </div>\
     ';
 };
+
+
+//TODO:   Current bugs/edge-cases
+/**
+ *
+ * 1) if you specify a from (or to) time which is outside the range of the data, the slider will behave a bit odd.
+ */

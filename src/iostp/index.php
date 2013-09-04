@@ -154,17 +154,25 @@ require_once("include/constants.php");
                 color: red;
         }
         .legend {
-                display: inline-block;
-                position: relative;
-                top:-150px;
-                right: -400px;
+                position:absolute;
+                left: 700px;
+                margin-top: -150px;
         }
+        .graphs {
+                position:relative;
+                width:700px;
+                margin-left:auto;
+                margin-right:auto;
+        }
+
         .graph {
                 width: 600px;
                 margin: auto;
         }
 
         .graphWrapper {
+            position:relative;
+            display: inline;
             -moz-box-shadow:inset 0px 0px 50px 25px #ffffff;
             -webkit-box-shadow:inset 0px 0px 50px 25px #ffffff;
             box-shadow:inset 0px 0px 50px 25px #ffffff;
