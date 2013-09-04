@@ -12,13 +12,8 @@ XivelyKit.prototype.setApiKey = function(key) {
 	xively.setKey(key);
 };
 
-XivelyKit.prototype.getGraph = function(units) {
-    if( this.graphs[units] === undefined ) {
-        this.graphs[units] = new Graph(units);
-        this.graphs[units].setGraphDiv($(this.tag+' .graph').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.tag.replace(/^#/,'')+"-"+this.graphs[units].getId()).removeClass('hidden');
-        this.graphs[units].setLegendDiv($(this.tag+' .legend').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.tag.replace(/^#/,'')+"-"+this.graphs[units].getId()+'-legend').removeClass('hidden');
-    }
-    return this.graphs[units];
+XivelyKit.prototype.getGraph = function(index) {
+    return this.graphs[index];
 };
 
 XivelyKit.prototype.getGraphs = function() {
@@ -57,6 +52,11 @@ XivelyKit.prototype.setTimespan = function(t) {
 
 XivelyKit.prototype.config = function() {
     var myKit = this;
+
+    this.tag = "#xivelyKit-"+this.getId();
+
+    myKit.setupGraphs(JSON.parse(myKit.getConfig()));
+
     var fromTimestamp = $('#fromTimestamp');
     var toTimestamp = $('#toTimestamp');
     fromTimestamp.datetimepicker( {
@@ -93,7 +93,6 @@ XivelyKit.prototype.config = function() {
     toTimestamp.datetimepicker('option', 'maxDateTime', new Date());
     toTimestamp.datetimepicker('option', 'maxDate', new Date());
 
-    this.tag = "#xivelyKit-"+this.getId();
     if( this.getConfig() === undefined ) {
         window.alert("here we would configure UI this kit");
     } else {
@@ -109,21 +108,27 @@ XivelyKit.prototype.config = function() {
  * now register it globally so it can be used elsewhere.
  */
 var theKit = new XivelyKit();
-theKit.setApiKey("5YoNwaN3vQzjn8RDnk7Hk4A8pvX1EhOLf2axaARP5gtwPmWq");  //TODO:  are we hardcoding in an api key?
+//TODO:  are we hardcoding in an api key?
+//       A better architecture would be to have the server generate an api key PER-SESSION and do this server-side
+//       This way each key can be throttled individually so that one user can't really affect other users
+theKit.setApiKey("3u1S5zDeKvppr5w177GCxzF7heAxatl88EK0htLVcpaVPUvE");   //currently set to user: robertlight's master api key
 
 IOSTP.getInstance().register( theKit );
 
 
 //*****************************************GRAPH WRAPPER***************************************
-function Graph(units) {
-    this.units = units;
+function Graph(i) {
+    this.index = i;
 }
 Graph.prototype.getUnits = function() {
     return this.units;
 };
+Graph.prototype.setUnits = function(u) {
+    this.units = u;
+};
 
 Graph.prototype.getId = function() {
-    return "graph-"+this.units.replace(/[^a-zA-Z0-9]/g, "");
+    return "graph-"+this.index;
 };
 
 Graph.prototype.setGraphDiv = function(d) {
@@ -153,11 +158,30 @@ Graph.prototype.getRickshawGraph = function() {
 XivelyKit.prototype.clearGraphs = function() {
     for( var key in this.graphs ) {
         if( this.graphs.hasOwnProperty(key)) {
-            $(this.tag+'-'+this.graphs[key].getId()).remove();
-            $(this.tag+'-'+this.graphs[key].getId()+'-legend').remove();
+            this.graphs[key].rickshawGraph = undefined;
+            $(this.tag+'-'+this.graphs[key].getId()).empty();
+            $(this.tag+'-'+this.graphs[key].getId()+'-legend').empty();
         }
     }
-    this.graphs = {};
+};
+
+XivelyKit.prototype.setupGraphs = function(configData) {
+    var myKit = this;
+
+    var maxGraphId = 0;
+    for(var i=0; i<configData.length; i++ ) {
+        var cfg = configData[i];
+        maxGraphId = Math.max(maxGraphId, cfg.index);
+    }
+    for( var i=0; i <= maxGraphId; i++ ) {
+        this.graphs[i] = new Graph(i);
+        this.graphs[i].setGraphDiv($(this.tag+' .graph').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.tag.replace(/^#/,'')+"-"+this.graphs[i].getId()).removeClass('hidden');
+        this.graphs[i].setLegendDiv($(this.tag+' .legend').clone()).appendTo(this.tag+' .graphWrapper').attr('id', this.tag.replace(/^#/,'')+"-"+this.graphs[i].getId()+'-legend').removeClass('hidden');
+    }
+}
+
+XivelyKit.prototype.unitString = function(datastream) {
+    return (datastream.unit && datastream.unit.label) ? datastream.unit.label : "no units";
 };
 
 XivelyKit.prototype.makeGraphs = function(configData, start, end) {
@@ -174,6 +198,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
     configData.forEach(function(cfg) {
 
         var feedId, datastreamId;
+        var graphIndex = cfg.index;
         var loc = cfg.dataStream.indexOf("!");
         if(loc > 0) {
             feedId = cfg.dataStream.substring(0, loc);
@@ -186,7 +211,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                     var ds_min_value = parseFloat(datastream.min_value) - .25*range;
                     var ds_max_value = parseFloat(datastream.max_value) + .25*range;
                     if( datastream.id == datastreamId ) {
-                        var graph = myKit.getGraph( (datastream.unit && datastream.unit.label) ? datastream.unit.label : "no units");
+                        var graph = myKit.getGraph( graphIndex );
 
                         var diff = end.getTime() - start.getTime();
                         var options = null;
@@ -296,9 +321,14 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                     }
                                 });
 
+                            }
 
-                                if( delayedTimeout != null ) clearTimeout(delayedTimeout);
-                                delayedTimeout = setTimeout( function() {
+                            // we have to do this delayed as we need to wait until all datastreams have loaded before we create the legends and hook up the slider.
+                            datastreamsToLoad--;
+                            $(myKit.tag+" .loading").addClass('hidden');
+                            if( delayedTimeout != null ) clearTimeout(delayedTimeout);
+                            delayedTimeout = setTimeout( function() {
+                                if( datastreamsToLoad == 0 ) {
                                     $('.timeControl').removeClass("hidden");
                                     var slider = new Rickshaw.Graph.RangeSlider({
                                         graph: myKit.getRickshawGraphs(),
@@ -322,23 +352,9 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                             });
                                         }
                                     }
-                                }, 1000);
-
-
-
-                                //NOTE:  here is how you modify Rickshaw so that a slider can handle more than one graph:
-                                //       http://stackoverflow.com/questions/13408497/one-slider-two-graphs-with-rickshaw-and-d3-js/13421407#13421407
-                            }
-                            datastreamsToLoad--;
-                            $(myKit.tag+" .loading").addClass('hidden');
-
+                                }
+                            }, 250);
                         });
-
-        //                    $('#feed-' + feedId + ' .datastreams .datastream-' + datastream.id + ' .slider').prop('id', 'slider-' + feedId + '-' + datastream.id);
-        //                    var slider = new Rickshaw.Graph.RangeSlider({
-        //                        graph: graph,
-        //                        element: $('#slider-' + feedId + '-' + datastream.id)
-        //                    });
                     }
                 });
 

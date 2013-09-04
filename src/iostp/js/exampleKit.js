@@ -24,7 +24,7 @@ ExampleKit.prototype.config = function() {
     if( this.getConfig() === undefined ) {
         window.alert("here we would configure this the ExampleKit");
     } else {
-        window.alert("I am configuring myself using this data: '"+cfgData+"'");
+        window.alert("I am configuring myself using this data: '"+this.getConfig()+"'");
     }
     return this;
 };
