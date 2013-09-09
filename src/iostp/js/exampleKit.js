@@ -17,12 +17,12 @@ ExampleKit.prototype.getType = function() {
 };
 
 ExampleKit.prototype.render = function() {
-    return '\
+    return $('\
         <div id="exampleKit-'+this.getId()+'">\
             <h2>my example page here</h2>\
             // you can put all your page level html here... make sure you uniq-ify things with your uniqueId \
         </div>\
-        ';
+        ');
 };
 
 ExampleKit.prototype.config = function() {

@@ -64,8 +64,11 @@ XivelyKit.prototype.config = function() {
             var to = toTimestamp.datetimepicker('getDate');
             var from = fromTimestamp.datetimepicker('getDate');
             var minTo = new Date(Math.min(new Date().getTime(),from.getTime()+6*60*60*1000));
+            var maxTo = new Date(Math.min(new Date().getTime(),from.getTime()+365*24*60*60*1000));
             toTimestamp.datepicker('option', 'minDate', minTo);
             toTimestamp.datepicker('option', 'minDateTime', minTo);
+            toTimestamp.datepicker('option', 'maxDate', maxTo);
+            toTimestamp.datepicker('option', 'maxDateTime', maxTo);
             myKit.makeGraphs(myKit.kitConfig, from, to);
         },
         beforeShow: function(input,inst)
@@ -81,17 +84,26 @@ XivelyKit.prototype.config = function() {
     toTimestamp.datetimepicker( {
         onClose:function() {
             var to = toTimestamp.datetimepicker('getDate');
-            var from = fromTimestamp.datetimepicker('getDate');
+            var from = new Date(Math.min(fromTimestamp.datetimepicker('getDate'), to.getTime()-6*60*60*1000));
             var maxFrom = new Date(to.getTime() - 6*60*60*1000);
+            var minFrom = new Date(to.getTime() - 365*24*60*60*1000);
+            fromTimestamp.datetimepicker('setDate', from);
             fromTimestamp.datepicker('option', 'maxDateTime', maxFrom);
+            fromTimestamp.datepicker('option', 'minDateTime', minFrom);
             fromTimestamp.datepicker('option', 'maxDate', maxFrom);
+            fromTimestamp.datepicker('option', 'minDate', minFrom);
             myKit.makeGraphs(myKit.kitConfig, from, to);
 
         }
     });
     toTimestamp.datetimepicker('setDate', new Date());
-    toTimestamp.datetimepicker('option', 'maxDateTime', new Date());
-    toTimestamp.datetimepicker('option', 'maxDate', new Date());
+    var maxTo = new Date(Math.min(new Date().getTime(), fromTimestamp.datetimepicker('getDate').getTime()+365*24*60*60*1000));
+    toTimestamp.datetimepicker('option', 'maxDateTime', maxTo);
+    toTimestamp.datetimepicker('option', 'maxDate', maxTo);;
+
+    var minFrom = new Date( toTimestamp.datetimepicker('getDate').getTime() - 365*24*60*60*1000);
+    fromTimestamp.datetimepicker('option', 'minDateTime', minFrom);
+    fromTimestamp.datetimepicker('option', 'minDate', minFrom);
 
     if( this.getConfig() === undefined ) {
         window.alert("here we would configure UI this kit");
@@ -256,6 +268,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
         var options = myKit.makeOptions( start, end );
 
         xively.feed.get(feedId, function(feedData) {
+            console.log( JSON.stringify(feedData));
             if(feedData.datastreams) {
                 feedData.datastreams.forEach(function(datastream) {
                     var range = parseFloat(datastream.max_value) - parseFloat(datastream.min_value);
