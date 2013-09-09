@@ -31,6 +31,9 @@ require_once("include/constants.php");
 	<link type="text/css" rel="stylesheet" href="css/rickshaw.min.css"/>
 	<link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.9.2.custom.css"/>
 
+    <!-- add a style sheet for each plugin -->
+	<link type="text/css" rel="stylesheet" href="css/xivelyKit.css"/>
+
 	<script type="text/javascript" src="js/jquery-1.8.3.js"></script>
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.9.2.custom.js"></script>
@@ -41,14 +44,15 @@ require_once("include/constants.php");
     <script type="text/javascript" src="js/iostpFramework.js"></script>
     <script type="text/javascript" src="js/jquery-timepickerAddon.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
-    <script type="text/javascript" src="js/xivelyKit.js"></script>
 
-      <!--
-           One of these for each our observation kit types.
-           Eventually, we can setup some kind of registration process where teachers can create their own software and
-           register them with the system and make them available to everyone or particular users...just set up php to
-           inject a new javascript tag here for every appropriate kit module (it may be dependent on student or teacher id.
-       -->
+
+    <!--
+       One of these for each our observation kit types.
+       Eventually, we can setup some kind of registration process where teachers can create their own software and
+       register them with the system and make them available to everyone or particular users...just set up php to
+       inject a new javascript tag here for every appropriate kit module (it may be dependent on student or teacher id.
+     -->
+    <script type="text/javascript" src="js/xivelyKit.js"></script>
     <script type="text/javascript" src="js/exampleKit.js"></script>
 
 
@@ -144,55 +148,6 @@ require_once("include/constants.php");
 			display: none;
 		}
 
-		#xivelyContent {
-			background: #fff;
-			box-shadow: inset 0px 0px 100px #f0f0f0;
-		}
-
-        .rickshaw_legend .action {
-                opacity: 1.0;
-                color: red;
-        }
-        .legend {
-                position:absolute;
-                left: 700px;
-                margin-top: -150px;
-        }
-        .graphs {
-                position:relative;
-                width:700px;
-                margin-left:auto;
-                margin-right:auto;
-        }
-
-        .graph {
-                width: 600px;
-                margin: auto;
-        }
-
-        .graphWrapper {
-            position:relative;
-            display: inline;
-            -moz-box-shadow:inset 0px 0px 50px 25px #ffffff;
-            -webkit-box-shadow:inset 0px 0px 50px 25px #ffffff;
-            box-shadow:inset 0px 0px 50px 25px #ffffff;
-            background-image: linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-            background-image: -o-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-            background-image: -moz-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-            background-image: -webkit-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-            background-image: -ms-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-            background-image: -webkit-gradient(
-                linear,
-                left bottom,
-                left top,
-                color-stop(0.3, rgb(255,255,255)),
-                color-stop(0.97, rgb(245,245,245))
-            );
-        }
-
-        .ui-datepicker {
-            padding:15px;
-        }
 
         #dialog label, #dialog input { display:inline; }
         #dialog label { margin-top: 0.5em; }
