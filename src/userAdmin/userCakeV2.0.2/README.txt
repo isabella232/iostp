@@ -23,7 +23,7 @@ Thank you for downloading UserCake, the simple user management package.
 
 //--Installation.
 
-1. Before proceeding please open up models/db-settings.php
+1. Before proceeding please open up and modify models/db-settings.php and install/constants.php
 
 2. Create a database on your server / web hosting package.
 
