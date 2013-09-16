@@ -60,7 +60,10 @@ XivelyKit.prototype.updateSelectList = function() {
     });
     //TODO: get the type-in filter text, add to query
     $.getJSON('plugins/xively/getDatasources.json.php?'+query.join("&"), function(data){
-        alert(JSON.stringify(data));
+        $("#ds_select").empty();
+        $.each( data, function(idx, dsItem) {
+            $("#ds_select").append("<option value='"+dsItem.datastream+"'>"+dsItem.datastream+"</option>");
+        });
     });
 
 };
@@ -466,8 +469,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 };
 
 XivelyKit.prototype.getHtml = function () {
-    return '\
-        <div style="margin:20px 0">\
+    return '<div style="margin:20px 0">\
             <a class="ui-state-default ui-corner-all" id="addDS" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">\
                 <span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>\
                     Add Data Source\
@@ -500,6 +502,7 @@ XivelyKit.prototype.getHtml = function () {
                     <div id="ds_filters"></div>\
                     <label for="ds_name">What do you want to call it?</label>\
                     <input type="text" name="ds_name" id="ds_name" value="" class="ui-widget-content ui-corner-all" />\
+                    <select id="ds_select" multiple></select>\
                 </fieldset>\
             </form>\
         </div>\

@@ -1,4 +1,5 @@
-<?php 
+<!DOCTYPE html>
+<?php
 /*
 UserCake Version: 2.0.1
 http://usercake.com
