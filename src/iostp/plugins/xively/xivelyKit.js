@@ -62,7 +62,7 @@ XivelyKit.prototype.updateSelectList = function() {
     $.getJSON('plugins/xively/getDatasources.json.php?'+query.join("&"), function(data){
         $("#ds_select").empty();
         $.each( data, function(idx, dsItem) {
-            $("#ds_select").append("<option value='"+dsItem.datastream+"'>"+dsItem.datastream+"</option>");
+            $("#ds_select").append("<option value='"+dsItem.datastream+"!"+dsItem.units+"'>"+dsItem.datastream+(dsItem.units=="" ? "" : " ("+dsItem.units+")")+"</option>");
         });
     });
 
@@ -77,7 +77,12 @@ XivelyKit.prototype.config = function() {
        minWidth: 600,
        buttons: {
          Add: function() {
-           alert("add btn hit");
+             $( "#ds_select").find("option:selected").each( function() {
+                var spec = $(this).val();
+                var units = spec.substring(spec.lastIndexOf("!")+1);
+                var ds = spec.substring(0, spec.lastIndexOf("!"));
+                alert("ds = "+ds+"   units="+units);
+             });
            $( this ).dialog( "close" );
          },
          Cancel: function() {
@@ -85,7 +90,7 @@ XivelyKit.prototype.config = function() {
          }
        },
        close: function() {
-         form[ 0 ].reset();
+  //       form[ 0 ].reset();
        }
     });
 
@@ -105,7 +110,10 @@ XivelyKit.prototype.config = function() {
                 }
             });
             html += "<div class='clear'></div>";
-            $("#ds_filters").append(html);
+            var filters = $("#ds_filters");
+            filters.empty();
+            filters.append(html);
+            $("#ds_select").empty();
             $(".dsFilterCheckbox").change(function() {
                 myKit.updateSelectList();
             });
