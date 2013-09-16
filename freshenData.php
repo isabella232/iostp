@@ -46,7 +46,7 @@ $createDatastreamsTable = "CREATE TABLE IF NOT EXISTS DATASTREAMS_TEMP " .
                 " UID VARCHAR(255));";
 $createDatastreamTagTable = "CREATE TABLE IF NOT EXISTS DATASTREAM_TAG_TEMP " .
                 " ( DS_UID VARCHAR(255), " .
-                " TAG VARCHAR(255), INDEX USING HASH (TAG)); ";
+                " TAG VARCHAR(255), UNIQUE INDEX TAG_IDX (DS_UID,TAG)); ";
 $createFeedTagTable = "CREATE TABLE IF NOT EXISTS FEED_TAG_TEMP " .
                 " ( FEED_ID VARCHAR(255), " .
                 " TAG VARCHAR(255), INDEX USING HASH (TAG)); ";
@@ -138,7 +138,9 @@ for( $page = 0; $nFeedsProcessed < $nFeedsToProcess || $nFeedsToProcess==-1; $pa
              if( property_exists($ds,'tags') ) {
                 foreach( $ds->tags as $tag ) {
                    $insertDSTagStmt->bind_param('ss', $dsUID, $tag);
-                   $insertDSTagStmt->execute();
+                   if( !$insertDSTagStmt->execute() ) {
+                       echo "\nINFO: found duplicate tag on ".$dsUID." tag:".$tag."\n";
+                   }
                 }
              }
           }

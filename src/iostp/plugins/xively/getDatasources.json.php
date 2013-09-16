@@ -18,15 +18,29 @@ $tags = $_GET['tags'];
 
 
 
+$rawQuery = "select DATASTREAMS.UID as DS_UID, DATASTREAMS.UNITS AS UNITS, DATASTREAMS.SYMBOL AS SYMBOL FROM DATASTREAMS INNER JOIN DATASTREAM_TAG on DATASTREAM_TAG.DS_UID=DATASTREAMS.UID";
+$rawQuery .=" WHERE (";
+
+$count = 0;
+$params = [];
 foreach( $tags as $tag ) {
-   $_db->where("DATASTREAM_TAG.TAG", $tag);
+   $rawQuery .= "DATASTREAM_TAG.TAG=? OR ";
+   $count++;
+   $params[] = $tag;
 }
 
-$results = $_db->query('SELECT DATASTREAMS.UID AS UID, DATASTREAMS.UNITS AS UNITS, DATASTREAMS.SYMBOL AS SYMBOL FROM DATASTREAMS INNER JOIN DATASTREAM_TAG ON DATASTREAM_TAG.DS_UID=DATASTREAMS.UID');
-
 $arr = [];
-foreach ($results as $row ) {
-    $arr[] = '{"datastream" : "'.$row['UID'].'", "units" : "'.$row['UNITS'].'", "symbol" : "'.$row['SYMBOL'].'"}';
+if( $count > 0 ) {
+    $rawQuery = rtrim($rawQuery," OR ");
+    $rawQuery .= ") GROUP BY DS_UID HAVING COUNT(DS_UID) = ?";
+    $params[] = $count;
+
+    trigger_error($rawQuery,E_USER_NOTICE);
+    $results = $_db->rawQuery($rawQuery,$params);
+
+    foreach ($results as $row ) {
+        $arr[] = '{"datastream" : "'.$row['DS_UID'].'", "units" : "'.$row['UNITS'].'", "symbol" : "'.$row['SYMBOL'].'"}';
+    }
 }
 //
 

@@ -372,6 +372,8 @@ class MysqliDb
             $this->_query .= ' LIMIT ' . (int)$numRows;
         }
 
+        trigger_error($this->_query, E_USER_NOTICE);
+
         // Prepare query
         $stmt = $this->_prepareQuery();
 
