@@ -40,7 +40,8 @@ XivelyKit.prototype.getType = function() {
 };
 
 XivelyKit.prototype.render = function() {
-    return $(this.getHtml());
+    var contents = $(this.getHtml());
+    return contents;
 };
 
 XivelyKit.prototype.getTimespan = function() {
@@ -50,8 +51,65 @@ XivelyKit.prototype.setTimespan = function(t) {
     this.timespan = t;
 };
 
+XivelyKit.prototype.updateSelectList = function() {
+    var query = [];
+    $.each( $(".dsFilterCheckbox"), function(idx,chkbox) {
+        if( $(chkbox).is(':checked') ) {
+            query.push("tags[]="+encodeURIComponent($(chkbox).val()));
+        }
+    });
+    //TODO: get the type-in filter text, add to query
+    $.getJSON('plugins/xively/getDatasources.json.php?'+query.join("&"), function(data){
+        alert(JSON.stringify(data));
+    });
+
+};
 XivelyKit.prototype.config = function() {
     var myKit = this;
+
+    var addDSDialog = $( "#newDSDialog" ).dialog({
+       autoOpen: false,
+       modal: true,
+       width: 750,
+       minWidth: 600,
+       buttons: {
+         Add: function() {
+           alert("add btn hit");
+           $( this ).dialog( "close" );
+         },
+         Cancel: function() {
+           $( this ).dialog( "close" );
+         }
+       },
+       close: function() {
+         form[ 0 ].reset();
+       }
+    });
+
+    $('#addDS').click(function(){
+        addDSDialog.dialog("open");
+        $.getJSON('plugins/xively/getTags.json.php', function(data){
+            var html = "";
+            var col=0;
+            $.each(data, function(idx,item) {
+                if( col % 3 == 0 ) {
+                    html += "<div class='grid_container_x3'>";
+                }
+                html += "<div class='grid_element column_x3'><input class='dsFilterCheckbox' type='checkbox' value='" + item + "'>" + item + "</input></div>";
+                col++;
+                if( col%3 == 0 ) {
+                    html += "</div><div class='clear'></div>";
+                }
+            });
+            html += "<div class='clear'></div>";
+            $("#ds_filters").append(html);
+            $(".dsFilterCheckbox").change(function() {
+                myKit.updateSelectList();
+            });
+        });
+        return false;
+    });
+
 
     this.tag = "#xivelyKit-"+this.getId();
 
@@ -409,6 +467,12 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
 XivelyKit.prototype.getHtml = function () {
     return '\
+        <div style="margin:20px 0">\
+            <a class="ui-state-default ui-corner-all" id="addDS" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">\
+                <span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>\
+                    Add Data Source\
+            </a>\
+        </div>\
         <div id="xivelyKit-'+this.getId()+'">\
             <div class="loading large-12 columns">\
                 <h2 class="subheader value">Loading Feed Data...</h2>\
@@ -428,6 +492,16 @@ XivelyKit.prototype.getHtml = function () {
                     </div>\
                 </div>\
             </div>\
+        </div>\
+        <div id="newDSDialog" title="Add a new data source">\
+            <form>\
+                <fieldset class="ui-helper-reset">\
+                    <label for="ds_types">What type of data source?</label>\
+                    <div id="ds_filters"></div>\
+                    <label for="ds_name">What do you want to call it?</label>\
+                    <input type="text" name="ds_name" id="ds_name" value="" class="ui-widget-content ui-corner-all" />\
+                </fieldset>\
+            </form>\
         </div>\
     ';
 };

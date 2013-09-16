@@ -11,6 +11,7 @@ $longopts  = array(
     "dummyOpt2",     // No value
 );
 
+
 $OPTIONS = getopt("r:",$longopts);
 
 $htdocs=false;
@@ -51,6 +52,9 @@ if(!$result) {
     }
 
     recursive_copy("../src/iostp", $htdocs);
+    // Xively plugin specific-------------------------------------------------
+    copy("constants.php",$htdocs."/plugins/xively/constants.php");
+    //------------------------------------------------------------------------
 }
 ?>
 

@@ -28,21 +28,21 @@ require_once("include/constants.php");
 
 	<link type="text/css" rel="stylesheet" href="css/normalize.css" />
 	<link type="text/css" rel="stylesheet" href="css/foundation.min.css" />
-	<link type="text/css" rel="stylesheet" href="css/rickshaw.min.css"/>
 	<link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.9.2.custom.css"/>
 
     <!-- add a style sheet for each plugin -->
-	<link type="text/css" rel="stylesheet" href="css/xivelyKit.css"/>
+	<link type="text/css" rel="stylesheet" href="plugins/xively/xivelyKit.css"/>
+	<link type="text/css" rel="stylesheet" href="plugins/xively/rickshaw.min.css"/>
 
 	<script type="text/javascript" src="js/jquery-1.8.3.js"></script>
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.9.2.custom.js"></script>
 	<script type="text/javascript" src="js/custom.modernizr.js"></script>
-	<script type="text/javascript" src="js/xivelyjs-1.0.0.min.js"></script>
+	<script type="text/javascript" src="plugins/xively/xivelyjs-1.0.0.min.js"></script>
 	<script type="text/javascript" src="js/d3.v2.js"></script>
-	<script type="text/javascript" src="js/rickshaw.min.js"></script>
+	<script type="text/javascript" src="plugins/xively/rickshaw.min.js"></script>
     <script type="text/javascript" src="js/iostpFramework.js"></script>
-    <script type="text/javascript" src="js/jquery-timepickerAddon.js"></script>
+    <script type="text/javascript" src="plugins/xively/jquery-timepickerAddon.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
 
 
@@ -52,7 +52,7 @@ require_once("include/constants.php");
        register them with the system and make them available to everyone or particular users...just set up php to
        inject a new javascript tag here for every appropriate kit module (it may be dependent on student or teacher id.
      -->
-    <script type="text/javascript" src="js/xivelyKit.js"></script>
+    <script type="text/javascript" src="plugins/xively/xivelyKit.js"></script>
     <script type="text/javascript" src="js/exampleKit.js"></script>
 
 
@@ -114,26 +114,27 @@ require_once("include/constants.php");
               }
            });
            // addTab form: calls addTab function on submit and closes the dialog
-           var form = addObservationKitDialog.find( "form" ).submit(function( event ) {
-                  addObservationKit();
-              dialog.dialog( "close" );
-              event.preventDefault();
+//           var form = addObservationKitDialog.find( "form" ).submit(function( event ) {
+//                  addObservationKit();
+//                  alert("submit btn clicked");
+//              dialog.dialog( "close" );
+//              event.preventDefault();
+//           });
+
+           $('#addTab').click(function(){
+               addObservationKitDialog.dialog("open");
+               return false;
            });
 
-               $('#addTab').click(function(){
-                   addObservationKitDialog.dialog("open");
-                   return false;
-		       });
-
-               // close icon: removing the tab on click
-               $( document ).on( "click","#tabs span.ui-icon-close", function() {
-                 var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
-                 var i = $("#"+panelId).index();
-                 var delCurSelTab = $("#tabs").tabs("option","selected") == i-1;
-                 $( "#" + panelId ).remove();
-                 $tabs.tabs( "refresh" );
-                 if(delCurSelTab) $tabs.tabs("select", i-1);
-               });
+           // close icon: removing the tab on click
+           $( document ).on( "click","#tabs span.ui-icon-close", function() {
+             var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
+             var i = $("#"+panelId).index();
+             var delCurSelTab = $("#tabs").tabs("option","selected") == i-1;
+             $( "#" + panelId ).remove();
+             $tabs.tabs( "refresh" );
+             if(delCurSelTab) $tabs.tabs("select", i-1);
+           });
        });
     </script>
 	<style type="text/css">
@@ -258,7 +259,7 @@ require_once("include/constants.php");
 
     <!-- TODO:  keep these -->
 	<!-- Modals -->
-	<div id="loadingData" class="reveal-modal small text-center">
+	<div id="loadingData" class="reveal-modal small text-center hidden">
 		<br/><br/><h2 class="subheader">Loading...</h2><br/><br/>
 	</div>
 
