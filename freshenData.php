@@ -16,7 +16,7 @@ function getFeedData($user, $page) {
    return $obj;
 }
 
-$xivelyUser = "calumbarnes";  //TODO: change to "iostp"
+$xivelyUser = "iostp";
 $schoolsCsvFile = "schools.csv";
 
 $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);

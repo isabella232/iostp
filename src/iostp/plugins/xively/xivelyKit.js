@@ -78,10 +78,11 @@ XivelyKit.prototype.config = function() {
        buttons: {
          Add: function() {
              $( "#ds_select").find("option:selected").each( function() {
-                var spec = $(this).val();
-                var units = spec.substring(spec.lastIndexOf("!")+1);
-                var ds = spec.substring(0, spec.lastIndexOf("!"));
-                alert("ds = "+ds+"   units="+units);
+                var parts = $(this).val().split("!");
+                var start = $('#fromTimestamp').datetimepicker('getDate');
+                var end = $('#toTimestamp').datetimepicker('getDate');
+
+                myKit.addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2]},  start, end);
              });
            $( this ).dialog( "close" );
          },
@@ -192,8 +193,8 @@ var theKit = new XivelyKit();
 //TODO:  are we hardcoding in an api key?
 //       A better architecture would be to have the server generate an api key PER-SESSION and do this server-side
 //       This way each key can be throttled individually so that one user can't really affect other users
-theKit.setApiKey("3u1S5zDeKvppr5w177GCxzF7heAxatl88EK0htLVcpaVPUvE");   //currently set to user: robertlight's master api key
-
+//theKit.setApiKey("3u1S5zDeKvppr5w177GCxzF7heAxatl88EK0htLVcpaVPUvE");   //robertlight's master api key
+theKit.setApiKey("6uhS3aF5Pwv4fkNlfBM4c0opqqyQfuSRGa0QjwZG6KKNi5a8");   //calumbarnes api key
 IOSTP.getInstance().register( theKit );
 
 
@@ -233,6 +234,18 @@ Graph.prototype.setRickshawGraph = function(g) {
 Graph.prototype.getRickshawGraph = function() {
     return this.rickshawGraph;
 };
+Graph.prototype.setLegend = function(l) {
+    this.legend = l;
+};
+Graph.prototype.getLegend = function () {
+    return this.legend;
+};
+Graph.prototype.setToggle = function(t) {
+    this.toggle = t;
+};
+Graph.prototype.getToggle = function () {
+    return this.toggle;
+};
 //*************************************END OF GRAPH WRAPPER************************************
 
 
@@ -246,6 +259,18 @@ XivelyKit.prototype.clearGraphs = function() {
     }
 };
 
+XivelyKit.prototype.addGraph = function(i) {
+    this.graphs[i] = new Graph(i);
+    var rootId = this.tag.replace(/^#/,'');
+    $(this.tag+' .graphWrapper').clone().attr('id',rootId+'-graphWrapper-'+i).removeClass('graphWrapper').removeClass('hidden').appendTo($(this.tag+' .graphs'));
+
+    var graphId = rootId+"-"+this.graphs[i].getId();
+    var legendId= rootId+"-"+this.graphs[i].getId()+'-legend';
+
+    this.graphs[i].setGraphDiv( $(this.tag+'-graphWrapper-'+i+' .graph') .attr('id', graphId));
+    this.graphs[i].setLegendDiv($(this.tag+'-graphWrapper-'+i+' .legend').attr('id', legendId));
+    return this.graphs[i];
+};
 
 /*
  * Each datastream goes in a particular graph (based on the index field of the configData).  When the datastreams are specified by the user
@@ -263,20 +288,209 @@ XivelyKit.prototype.setupGraphs = function(configData) {
         maxGraphId = Math.max(maxGraphId, cfg.index);
     }
     for( var i=0; i <= maxGraphId; i++ ) {
-        this.graphs[i] = new Graph(i);
-        var rootId = this.tag.replace(/^#/,'');
-        $(this.tag+' .graphWrapper').clone().attr('id',rootId+'-graphWrapper-'+i).removeClass('graphWrapper').removeClass('hidden').appendTo($(this.tag+' .graphs'));
-
-        var graphId = rootId+"-"+this.graphs[i].getId();
-        var legendId= rootId+"-"+this.graphs[i].getId()+'-legend';
-
-        this.graphs[i].setGraphDiv( $(this.tag+'-graphWrapper-'+i+' .graph') .attr('id', graphId));
-        this.graphs[i].setLegendDiv($(this.tag+'-graphWrapper-'+i+' .legend').attr('id', legendId));
+        this.addGraph(i);
     }
 };
 
 //TODO: we will need to create an addDatastream(cfg) which will create a new graph if necessary and add the cfg to the base configData
 
+XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
+
+    var myKit = this;
+
+    var units = cfg.units;
+    var addToGraph = false;
+    var maxGraphId = -1;
+    var needToCreateNewGraph = false;
+    for( var key in this.graphs ) {
+        if( this.graphs.hasOwnProperty(key)) {
+  //          this.graphs[key].rickshawGraph = undefined;
+            maxGraphId = Math.max(maxGraphId, key);
+             if( units == this.graphs[key].getUnits()) {
+                 addToGraph = this.graphs[key];
+                 break;
+             }
+        }
+    }
+    if( addToGraph === false ) { //units not found - need to create a new graph
+        needToCreateNewGraph = true;
+        maxGraphId++;
+    }
+
+
+    //**** add a new series to an old graph or create a new Rickshaw graph with the new series on it *******************
+
+    var feedId, datastreamId;
+    var graphIndex = maxGraphId;
+    var parts = cfg.datastream.split("!");
+    if(parts.length >= 2) {
+        feedId = parts[0];
+        datastreamId = parts[1];
+    } else {
+        alert("Malformed datastream specification: "+cfg.datastream);
+    }
+
+    var options = myKit.makeOptions( start, end );
+
+    var datastreamsToLoad = 1;
+    var delayedTimeout = null;
+
+    xively.feed.get(feedId, function(feedData) {
+        console.log( "adding new datastream: \n"+JSON.stringify(feedData));
+        if(feedData.datastreams) {
+            feedData.datastreams.forEach(function(datastream) {
+                var range = parseFloat(datastream.max_value) - parseFloat(datastream.min_value);
+                var ds_min_value = parseFloat(datastream.min_value) - .25*range;
+                var ds_max_value = parseFloat(datastream.max_value) + .25*range;
+                if( datastream.id == datastreamId ) {
+
+                    if( needToCreateNewGraph ) {
+                        myKit.addGraph(graphIndex);
+                    }
+                    var graph = myKit.getGraph( graphIndex );
+
+                    graph.setUnits((datastream.unit && datastream.unit.label) ? datastream.unit.label : "no units");
+
+                    xively.datastream.history(feedId, datastreamId, options, function(datastreamData) {
+                        console.log("datastreamData: "+JSON.stringify(datastreamData));
+                        var points = [];
+
+                        // Historical Datapoints
+                        if( !datastreamData.datapoints ) {
+                            alert("No data found for datastream");
+                        } else {
+
+                            addToGraph = myKit.addGraph(maxGraphId);
+
+                            // Add Each Datapoint to Array
+                            datastreamData.datapoints.forEach(function(datapoint) {
+                                points.push({x: new Date(datapoint.at).getTime()/1000.0, y: parseFloat(datapoint.value)});
+                            });
+
+                            // Add Datapoints Array to Graph Series Array
+                            var series = {
+                                name: datastream.id,
+                                data: points,
+                                color: '#FF0000'// + dataColor
+                            };
+
+                            var rickshawGraph = null;
+                            if( graph.getRickshawGraph() == undefined ) {
+
+                                $(myKit.tag+'-'+graph.getId()).empty();  //get rid of anything that is currently there
+
+                                // Build Graph
+                                console.log("about to create a rickshaw graph on id: "+myKit.tag+'-'+graph.getId());
+                                rickshawGraph = new Rickshaw.Graph( {
+                                    element: document.querySelector(myKit.tag+'-'+graph.getId()),
+                                    width: 600,
+                                    height: 200,
+                                    renderer: 'line',
+                                    min: ds_min_value,
+                                    max: ds_max_value,
+                                    padding: {
+                                        top: 0.02,
+                                        right: 0.02,
+                                        bottom: 0.02,
+                                        left: 0.02
+                                    },
+                                    series: [series]
+                                });
+
+                                graph.setRickshawGraph(rickshawGraph);
+                            } else {
+                                series.color = '#00FF00';
+                                rickshawGraph = graph.getRickshawGraph();
+                                rickshawGraph.series.push(series);
+                                rickshawGraph.min = Math.min(rickshawGraph.min, ds_min_value);
+                                rickshawGraph.max = Math.max(rickshawGraph.max, ds_max_value);
+                                graph.getLegend().addLine(series);
+                                if( graph.getRickshawGraph().series.length == 2 ) { //when there is only 1, no toggle
+                                    graph.setToggle(new Rickshaw.Graph.Behavior.Series.Toggle({
+                                        graph:  rickshawGraph,
+                                        legend: graph.getLegend()
+                                    }));
+                                } else {
+                                    graph.getToggle().updateBehaviour();
+                                }
+                                rickshawGraph.update();
+                            }
+
+                            rickshawGraph.render();
+
+                            var ticksTreatment = 'glow';
+
+                            // Define and Render X Axis (Time Values)
+                            var xAxis = new Rickshaw.Graph.Axis.Time( {
+                                graph: rickshawGraph,
+                                ticksTreatment: ticksTreatment
+                            });
+                            xAxis.render();
+
+                            // Define and Render Y Axis (Datastream Values)
+                            var yAxis = new Rickshaw.Graph.Axis.Y( {
+                                graph: rickshawGraph,
+                                orientation: 'left',
+                                tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+                                ticksTreatment: ticksTreatment
+                            });
+                            yAxis.render();
+
+                            // Enable Datapoint Hover Values
+                            var hoverDetail = new Rickshaw.Graph.HoverDetail({
+                                graph: rickshawGraph,
+                                formatter: function(series, x, y) {
+                                    var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + ' padding: 4px;"></span>';
+                                    var content = swatch + "&nbsp;&nbsp;" + parseFloat(y) + '&nbsp;&nbsp;<br>';
+                                    return content;
+                                }
+                            });
+
+                        }
+//TODO: we need to hook up the slider to the new graph
+
+//                        // we have to do this delayed as we need to wait until all datastreams have loaded before we create the legends and hook up the slider.
+//                        datastreamsToLoad--;
+//                        $(myKit.tag+" .loading").addClass('hidden');
+//                        if( delayedTimeout != null ) clearTimeout(delayedTimeout);
+//                        delayedTimeout = setTimeout( function() {
+//                            if( datastreamsToLoad == 0 ) {
+//                                $('.timeControl').removeClass("hidden");
+//                                var slider = new Rickshaw.Graph.RangeSlider({
+//                                    graph: myKit.getRickshawGraphs(),
+//                                    element: $(myKit.tag + ' .slider'),
+//                                    onslide: function(min,max) {
+//                                        var tzOffset = new Date().getTimezoneOffset();
+//                                        $('#fromTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+min*1000));
+//                                        $('#toTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+max*1000));
+//                                    }
+//                                });
+//                                for( var key in myKit.getGraphs() ) {
+//                                    var graph = myKit.getGraphs()[key];
+//                                    var legend = new Rickshaw.Graph.Legend( {
+//                                            element: document.querySelector(myKit.tag+'-'+graph.getId()+'-legend'),
+//                                            graph:   graph.getRickshawGraph()
+//                                    } );
+//                                    if( graph.getRickshawGraph().series.length > 1 ) {
+//                                        var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
+//                                            graph:  graph.getRickshawGraph(),
+//                                            legend: legend
+//                                        });
+//                                    }
+//                                }
+//                            }
+//                        }, 250);
+                    });
+                }
+            });
+
+        } else {
+            window.alert("no datastreams found");
+        }
+    });
+    //******************************************************************************************************************
+
+};
 
 /**
  * Create options data for requesting datastream data
@@ -328,16 +542,17 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
         var feedId, datastreamId;
         var graphIndex = cfg.index;
-        var loc = cfg.dataStream.indexOf("!");
-        if(loc > 0) {
-            feedId = cfg.dataStream.substring(0, loc);
-            datastreamId = cfg.dataStream.substring(loc+1);
+        var parts = cfg.datastream.split("!");
+        if(parts.length >= 2) {
+            feedId = parts[0];
+            datastreamId = parts[1];
+        } else {
+            alert("Malformed datastream specification: "+cfg.datastream);
         }
 
         var options = myKit.makeOptions( start, end );
 
         xively.feed.get(feedId, function(feedData) {
-            console.log( JSON.stringify(feedData));
             if(feedData.datastreams) {
                 feedData.datastreams.forEach(function(datastream) {
                     var range = parseFloat(datastream.max_value) - parseFloat(datastream.min_value);
@@ -362,7 +577,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
                                 // Add Datapoints Array to Graph Series Array
                                 var series = {
-                                    name: datastream.id,  //TODO:  Should we use datastream.title here??
+                                    name: datastream.id,
                                     data: points,
                                     color: '#FF0000'// + dataColor
                                 };
@@ -450,15 +665,15 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                     });
                                     for( var key in myKit.getGraphs() ) {
                                         var graph = myKit.getGraphs()[key];
-                                        var legend = new Rickshaw.Graph.Legend( {
+                                        graph.setLegend(new Rickshaw.Graph.Legend( {
                                                 element: document.querySelector(myKit.tag+'-'+graph.getId()+'-legend'),
                                                 graph:   graph.getRickshawGraph()
-                                        } );
+                                        }));
                                         if( graph.getRickshawGraph().series.length > 1 ) {
-                                            var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
+                                            graph.setToggle(new Rickshaw.Graph.Behavior.Series.Toggle({
                                                 graph:  graph.getRickshawGraph(),
-                                                legend: legend
-                                            });
+                                                legend: graph.getLegend()
+                                            }));
                                         }
                                     }
                                 }
