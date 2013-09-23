@@ -395,10 +395,6 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
 
                                 addToGraph.setRickshawGraph(rickshawGraph);
                                 addToGraph.setSlider(slider);
-                                addToGraph.setLegend(new Rickshaw.Graph.Legend( {
-                                    element: document.querySelector(myKit.tag+'-'+addToGraph.getId()+'-legend'),
-                                    graph:   addToGraph.getRickshawGraph()
-                                } ) );
 
                             } else {
                                 series.color = '#00FF00';
@@ -406,17 +402,23 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                                 rickshawGraph.series.push(series);
                                 rickshawGraph.min = Math.min(rickshawGraph.min, ds_min_value);
                                 rickshawGraph.max = Math.max(rickshawGraph.max, ds_max_value);
-                                addToGraph.getLegend().addLine(series);
-                                if( addToGraph.getRickshawGraph().series.length == 2 ) { //when there was only 1, no toggle
-                                    addToGraph.setToggle(new Rickshaw.Graph.Behavior.Series.Toggle({
-                                        graph:  rickshawGraph,
-                                        legend: addToGraph.getLegend()
-                                    }));
-                                } else {
-                                    addToGraph.getToggle().updateBehaviour();
-                                }
                                 rickshawGraph.update();
                             }
+
+                            addToGraph.getLegendDiv().empty();
+                            addToGraph.setLegend(new Rickshaw.Graph.Legend( {
+                                element: document.querySelector(myKit.tag+'-'+addToGraph.getId()+'-legend'),
+                                graph:   addToGraph.getRickshawGraph()
+                            } ) );
+//                            addToGraph.getLegend().addLine(series);
+                            if( addToGraph.getRickshawGraph().series.length > 1 ) {
+                                addToGraph.setToggle(new Rickshaw.Graph.Behavior.Series.Toggle({
+                                    graph:  rickshawGraph,
+                                    legend: addToGraph.getLegend()
+                                }));
+                            }// else {
+                             //   addToGraph.getToggle().updateBehaviour();
+                            //}
 
                             rickshawGraph.render();
 
