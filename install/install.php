@@ -17,9 +17,7 @@ $OPTIONS = getopt("r:",$longopts);
 $htdocs=false;
 if( $OPTIONS["htdocs"] ) {
    $htdocs = $OPTIONS["htdocs"];
-} else if( $OPTIONS["r"] ) {
-   $htdocs = $OPTIONS["r"];
-}
+} 
 
 if( !$htdocs ) {
    echo "Usage:  install.php --htdocs=[rootdir of htdocs]\n";
