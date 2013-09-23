@@ -201,6 +201,8 @@ IOSTP.getInstance().register( theKit );
 //*****************************************GRAPH WRAPPER***************************************
 function Graph(i) {
     this.index = i;
+    this.colorBlindColors = new Array("#F0E442","#0072B2","#D55E00","#CC79A7","#2B9578","#56B4E9","#E69F00","#000000");
+    this.colorBlindColorIndex = 0;
 }
 Graph.prototype.getUnits = function() {
     return this.units;
@@ -251,6 +253,11 @@ Graph.prototype.setToggle = function(t) {
 };
 Graph.prototype.getToggle = function () {
     return this.toggle;
+};
+Graph.prototype.getNextColor = function() {
+    var color = this.colorBlindColors[this.colorBlindColorIndex];
+    this.colorBlindColorIndex = ++this.colorBlindColorIndex % this.colorBlindColors.length;
+    return color;
 };
 //*************************************END OF GRAPH WRAPPER************************************
 
@@ -347,7 +354,9 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                         slider = myKit.getGraph(maxGraphId).getSlider();
                         addToGraph = myKit.addGraph(++maxGraphId);
                     }
-                    addToGraph.setUnits((datastream.unit && datastream.unit.label) ? datastream.unit.label : "no units");
+                    cfg.index = maxGraphId;
+                    cfg.units = (datastream.unit && datastream.unit.label) ? datastream.unit.label : "no units";
+                    addToGraph.setUnits(cfg.units);
 
                     xively.datastream.history(feedId, datastreamId, options, function(datastreamData) {
 //                        console.log("datastreamData: "+JSON.stringify(datastreamData));
@@ -367,7 +376,7 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                             var series = {
                                 name: datastream.id,
                                 data: points,
-                                color: '#FF0000'// + dataColor
+                                color: addToGraph.getNextColor()
                             };
 
                             var rickshawGraph = null;
@@ -397,7 +406,7 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                                 addToGraph.setSlider(slider);
 
                             } else {
-                                series.color = '#00FF00';
+                                series.color = addToGraph.getNextColor();
                                 rickshawGraph = addToGraph.getRickshawGraph();
                                 rickshawGraph.series.push(series);
                                 rickshawGraph.min = Math.min(rickshawGraph.min, ds_min_value);
@@ -410,15 +419,13 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                                 element: document.querySelector(myKit.tag+'-'+addToGraph.getId()+'-legend'),
                                 graph:   addToGraph.getRickshawGraph()
                             } ) );
-//                            addToGraph.getLegend().addLine(series);
+
                             if( addToGraph.getRickshawGraph().series.length > 1 ) {
                                 addToGraph.setToggle(new Rickshaw.Graph.Behavior.Series.Toggle({
                                     graph:  rickshawGraph,
                                     legend: addToGraph.getLegend()
                                 }));
-                            }// else {
-                             //   addToGraph.getToggle().updateBehaviour();
-                            //}
+                            }
 
                             rickshawGraph.render();
 
@@ -476,6 +483,8 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
 //                            }
 //                        }
                     });
+
+                    myKit.kitConfig.push(cfg);
                 }
             });
 
@@ -494,6 +503,7 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
  * @returns {interval, limit, start, end}
  */
 XivelyKit.prototype.makeOptions = function (start, end) {
+
     var diff = end.getTime() - start.getTime();
     var options = {
         limit: 1000,
@@ -574,7 +584,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                 var series = {
                                     name: datastream.id,
                                     data: points,
-                                    color: '#FF0000'// + dataColor
+                                    color: graph.getNextColor()
                                 };
 
                                 var rickshawGraph = null;
@@ -602,7 +612,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
                                     graph.setRickshawGraph(rickshawGraph);
                                 } else {
-                                    series.color = '#00FF00';
+                                    series.color = graph.getNextColor();
                                     rickshawGraph = graph.getRickshawGraph();
                                     rickshawGraph.series.push(series);
                                     rickshawGraph.min = Math.min(rickshawGraph.min, ds_min_value);
