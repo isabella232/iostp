@@ -292,7 +292,7 @@ XivelyKit.prototype.addGraph = function(i) {
 
     this.graphs[i].setGraphDiv( $(this.tag+'-graphWrapper-'+i+' .graph').attr('id', graphId));
     this.graphs[i].setLegendDiv($(this.tag+'-graphWrapper-'+i+' .legend').attr('id', legendId));
-    this.graphs[i].setYAxisDiv($(this.tag+'-graphWrapper-' +i+' .yAxis').removeClass('yAxis').attr('id', yAxisId));
+    this.graphs[i].setYAxisDiv($(this.tag+'-graphWrapper-' +i+' .yAxis').attr('id', yAxisId));
     return this.graphs[i];
 };
 
@@ -416,6 +416,23 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                                 addToGraph.setRickshawGraph(rickshawGraph);
                                 addToGraph.setSlider(slider);
 
+                                // Define and Render X Axis (Time Values)
+                                var xAxis = new Rickshaw.Graph.Axis.Time( {
+                                    graph: rickshawGraph,
+                                    ticksTreatment: 'glow'
+                                });
+                                xAxis.render();
+                                // Define and Render Y Axis (Datastream Values)
+                                var yAxis = new Rickshaw.Graph.Axis.Y( {
+                                    element: document.querySelector(myKit.tag+'-'+addToGraph.getId()+'-yAxis'),
+                                    width: 50,
+                                    graph: rickshawGraph,
+                                    //                       orientation: 'left',
+                                    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+                                    ticksTreatment: 'glow'
+                                });
+                                yAxis.render();
+
                             } else {
                                 series.color = addToGraph.getNextColor();
                                 rickshawGraph = addToGraph.getRickshawGraph();
@@ -437,26 +454,6 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                                     legend: addToGraph.getLegend()
                                 }));
                             }
-
-
-                            // Define and Render X Axis (Time Values)
-                            var xAxis = new Rickshaw.Graph.Axis.Time( {
-                                graph: rickshawGraph,
-                                ticksTreatment: 'glow'
-                            });
-                            xAxis.render();
-
-                            // Define and Render Y Axis (Datastream Values)
-                            console.log("about to create a yAxis in div: "+myKit.tag+'-'+addToGraph.getId()+'-yAxis');
-                            var yAxis = new Rickshaw.Graph.Axis.Y( {
-                                element: document.querySelector(myKit.tag+'-'+addToGraph.getId()+'-yAxis'),
-                                width: 50,
-                                graph: rickshawGraph,
-         //                       orientation: 'left',
-                                tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-                                ticksTreatment: 'glow'
-                            });
-                            yAxis.render();
 
                             // Enable Datapoint Hover Values
                             var hoverDetail = new Rickshaw.Graph.HoverDetail({
