@@ -7,11 +7,12 @@ require_once("install/constants.php");
 function getFeedData($user, $page) {
     $context = stream_context_create(array(
         'http' => array(
-            'header'  => "Authorization: Basic cm9iZXJ0bGlnaHQ6bG9ydG9u"
         )
     ));
 
-   $json = file_get_contents("https://api.xively.com/v2/feeds/?user=".$user."&page=".$page, false, $context);
+   $apiKey = "680dCuji2cKgPYrCsGErbtkRumbCRuUx9WRR3mH9iRFPYPAn";
+   $json = file_get_contents("https://api.xively.com/v2/feeds/?user=".$user."&page=".$page."&key=".$apiKey, false, $context);
+   echo "JSON: ".$json;
    $obj = json_decode($json);
    return $obj;
 }

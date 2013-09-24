@@ -194,7 +194,8 @@ var theKit = new XivelyKit();
 //       A better architecture would be to have the server generate an api key PER-SESSION and do this server-side
 //       This way each key can be throttled individually so that one user can't really affect other users
 //theKit.setApiKey("3u1S5zDeKvppr5w177GCxzF7heAxatl88EK0htLVcpaVPUvE");   //robertlight's master api key
-theKit.setApiKey("6uhS3aF5Pwv4fkNlfBM4c0opqqyQfuSRGa0QjwZG6KKNi5a8");   //calumbarnes api key
+//theKit.setApiKey("6uhS3aF5Pwv4fkNlfBM4c0opqqyQfuSRGa0QjwZG6KKNi5a8");   //calumbarnes api key
+theKit.setApiKey("680dCuji2cKgPYrCsGErbtkRumbCRuUx9WRR3mH9iRFPYPAn");   //iostp READPRIVATE key
 IOSTP.getInstance().register( theKit );
 
 
@@ -370,7 +371,6 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                     addToGraph.setUnits(cfg.units);
 
                     xively.datastream.history(feedId, datastreamId, options, function(datastreamData) {
-//                        console.log("datastreamData: "+JSON.stringify(datastreamData));
                         var points = [];
 
                         // Historical Datapoints
@@ -499,7 +499,7 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
             });
 
         } else {
-            window.alert("no datastreams found");
+            window.alert("could not access feed");
         }
     });
     //******************************************************************************************************************
