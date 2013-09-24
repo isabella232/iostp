@@ -8,9 +8,10 @@
     color: red;
 }
 .legend {
-    position:absolute;
-    left: 700px;
-    margin-top: -150px;
+    position:relative;
+    /*left: 620px;*/
+    /*margin-top: -300px;*/
+    top: -100px;
 }
 .graphs {
     position:relative;
@@ -20,28 +21,43 @@
 }
 
 .graph {
+    position: relative;
+    display:inline-block;
     width: 600px;
     margin: auto;
 }
 
-.graphWrapper {
+.y_axis {
     position:relative;
-    display: inline;
-    -moz-box-shadow:inset 0px 0px 50px 25px #ffffff;
-    -webkit-box-shadow:inset 0px 0px 50px 25px #ffffff;
-    box-shadow:inset 0px 0px 50px 25px #ffffff;
-    background-image: linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-    background-image: -o-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-    background-image: -moz-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-    background-image: -webkit-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-    background-image: -ms-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0.3, rgb(255,255,255)),
-        color-stop(0.97, rgb(245,245,245))
-    );
+    display:inline;
+    float:left;
+    /*top:0;*/
+    /*bottom: 0;*/
+    width:40px
+}
+
+
+.graphWrapper {
+    /*float:left;*/
+    position:relative;
+    white-space:nowrap;
+    /*position:relative;*/
+    /*display: inline-block;*/
+    /*-moz-box-shadow:inset 0px 0px 50px 25px #ffffff;*/
+    /*-webkit-box-shadow:inset 0px 0px 50px 25px #ffffff;*/
+    /*box-shadow:inset 0px 0px 50px 25px #ffffff;*/
+    /*background-image: linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);*/
+    /*background-image: -o-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);*/
+    /*background-image: -moz-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);*/
+    /*background-image: -webkit-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);*/
+    /*background-image: -ms-linear-gradient(bottom, rgb(255,255,255) 30%, rgb(245,245,245) 97%);*/
+    /*background-image: -webkit-gradient(*/
+        /*linear,*/
+        /*left bottom,*/
+        /*left top,*/
+        /*color-stop(0.3, rgb(255,255,255)),*/
+        /*color-stop(0.97, rgb(245,245,245))*/
+    /*);*/
 }
 
 .ui-datepicker {
