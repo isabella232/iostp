@@ -53,12 +53,17 @@ XivelyKit.prototype.setTimespan = function(t) {
 
 XivelyKit.prototype.updateSelectList = function() {
     var query = [];
+    var ds_filterText = $("#ds_filterText").val();
+    if( ds_filterText != "" ) {
+        query.push("tags[]="+encodeURIComponent(ds_filterText));
+    }
     $.each( $(".dsFilterCheckbox"), function(idx,chkbox) {
         if( $(chkbox).is(':checked') ) {
-            query.push("tags[]="+encodeURIComponent($(chkbox).val()));
+            if( ds_filterText != $(chkbox).val()) {
+                query.push("tags[]="+encodeURIComponent($(chkbox).val()));
+            }
         }
     });
-    //TODO: get the type-in filter text, add to query
     $.getJSON('plugins/xively/getDatasources.json.php?'+query.join("&"), function(data){
         $("#ds_select").empty();
         $.each( data, function(idx, dsItem) {
@@ -77,12 +82,13 @@ XivelyKit.prototype.config = function() {
        minWidth: 600,
        buttons: {
          Add: function() {
+
              $( "#ds_select").find("option:selected").each( function() {
                 var parts = $(this).val().split("!");
                 var start = $('#fromTimestamp').datetimepicker('getDate');
                 var end = $('#toTimestamp').datetimepicker('getDate');
 
-                myKit.addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2]},  start, end);
+                myKit.addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2],name:$("#ds_name").val()},  start, end);
              });
            $( this ).dialog( "close" );
          },
@@ -117,6 +123,18 @@ XivelyKit.prototype.config = function() {
             $("#ds_select").empty();
             $(".dsFilterCheckbox").change(function() {
                 myKit.updateSelectList();
+            });
+            $("#ds_filterText").keyup( function(ev) {  //call updateSelectList 500ms after last character typed.
+
+                if( this.ds_filterTextTimeout ) {
+                    clearTimeout(this.ds_filterTextTimeout);
+                }
+
+                this.ds_filterTextTimeout = setTimeout(function() {
+                    myKit.updateSelectList();
+                    this.ds_filterTextTimeout = false;
+                }, 500);
+
             });
         });
         return false;
@@ -385,7 +403,7 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
 
                             // Add Datapoints Array to Graph Series Array
                             var series = {
-                                name: datastream.id,
+                                name: cfg.name?cfg.name:datastream.id,
                                 data: points,
                                 color: addToGraph.getNextColor()
                             };
@@ -592,7 +610,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
                                 // Add Datapoints Array to Graph Series Array
                                 var series = {
-                                    name: datastream.id,
+                                    name: cfg.name ? cfg.name : datastream.id,
                                     data: points,
                                     color: graph.getNextColor()
                                 };
@@ -774,6 +792,9 @@ XivelyKit.prototype.getHtml = function () {
                 <fieldset class="ui-helper-reset">\
                     <label for="ds_types">What type of data source?</label>\
                     <div id="ds_filters"></div>\
+                    <label for="ds_filterText">Specific filter:</label>\
+                    <input type="text" name="ds_filterText" id="ds_filterText" value="" class="ui-widget-content ui-corner-all" />\
+                    <hr>\
                     <label for="ds_name">What do you want to call it?</label>\
                     <input type="text" name="ds_name" id="ds_name" value="" class="ui-widget-content ui-corner-all" />\
                     <select id="ds_select" multiple></select>\
