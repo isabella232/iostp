@@ -359,7 +359,7 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
             feedData.datastreams.forEach(function(datastream) {
                 var range = parseFloat(datastream.max_value) - parseFloat(datastream.min_value);
                 var ds_min_value = parseFloat(datastream.min_value) - .25*range;
-                var ds_max_value = parseFloat(datastream.max_value) + .25*range;
+                var ds_max_value = Math.max(1.0, parseFloat(datastream.max_value) + .25*range);
                 if( datastream.id == datastreamId ) {
 
                     if( addToGraph === false ) { //we're creating a new graph
