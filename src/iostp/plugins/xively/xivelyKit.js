@@ -649,36 +649,6 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                 }
 
                                 rickshawGraph.render();
-
-//                                var ticksTreatment = 'glow';
-//
-//                                // Define and Render X Axis (Time Values)
-//                                var xAxis = new Rickshaw.Graph.Axis.Time( {
-//                                    graph: rickshawGraph,
-//                                    ticksTreatment: ticksTreatment
-//                                });
-//                                xAxis.render();
-//
-//                                // Define and Render Y Axis (Datastream Values)
-//                                var yAxis = new Rickshaw.Graph.Axis.Y( {
-//                                    element: document.querySelector(myKit.tag+'-'+graph.getId()+'-yAxis'),
-//                                    graph: rickshawGraph,
-//                                    orientation: 'left',
-//                                    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-//                                    ticksTreatment: ticksTreatment
-//                                });
-//                                yAxis.render();
-//
-//                                // Enable Datapoint Hover Values
-//                                var hoverDetail = new Rickshaw.Graph.HoverDetail({
-//                                    graph: rickshawGraph,
-//                                    formatter: function(series, x, y) {
-//                                        var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + ' padding: 4px;"></span>';
-//                                        var content = swatch + "&nbsp;&nbsp;" + parseFloat(y) + '&nbsp;&nbsp;<br>';
-//                                        return content;
-//                                    }
-//                                });
-
                             }
 
                             // we have to do this delayed as we need to wait until all datastreams have loaded before we create the legends and hook up the slider.
