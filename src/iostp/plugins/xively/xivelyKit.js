@@ -72,33 +72,35 @@ XivelyKit.prototype.updateSelectList = function() {
     });
 
 };
-XivelyKit.prototype.config = function() {
+
+XivelyKit.prototype.createAddDSDialog = function() {
+
     var myKit = this;
 
     var addDSDialog = $( "#newDSDialog" ).dialog({
-       autoOpen: false,
-       modal: true,
-       width: 750,
-       minWidth: 600,
-       buttons: {
-         Add: function() {
+        autoOpen: false,
+        modal: true,
+        width: 750,
+        minWidth: 600,
+        buttons: {
+            Add: function() {
 
-             $( "#ds_select").find("option:selected").each( function() {
-                var parts = $(this).val().split("!");
-                var start = $('#fromTimestamp').datetimepicker('getDate');
-                var end = $('#toTimestamp').datetimepicker('getDate');
+                $( "#ds_select").find("option:selected").each( function() {
+                    var parts = $(this).val().split("!");
+                    var start = $('#fromTimestamp').datetimepicker('getDate');
+                    var end = $('#toTimestamp').datetimepicker('getDate');
 
-                myKit.addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2],name:$("#ds_name").val()},  start, end);
-             });
-           $( this ).dialog( "close" );
-         },
-         Cancel: function() {
-           $( this ).dialog( "close" );
-         }
-       },
-       close: function() {
-  //       form[ 0 ].reset();
-       }
+                    myKit.addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2],name:$("#ds_name").val()},  start, end);
+                });
+                $( this ).dialog( "close" );
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+            }
+        },
+        close: function() {
+            //       form[ 0 ].reset();
+        }
     });
 
     $('#addDS').click(function(){
@@ -131,7 +133,7 @@ XivelyKit.prototype.config = function() {
                 }
 
                 this.ds_filterTextTimeout = setTimeout(function() {
-                    myKit.updateSelectList();
+                    this.updateSelectList();
                     this.ds_filterTextTimeout = false;
                 }, 500);
 
@@ -139,11 +141,54 @@ XivelyKit.prototype.config = function() {
         });
         return false;
     });
+};
+XivelyKit.prototype.createManageDSDialog = function() {
 
+    var myKit = this;
+
+    var manageDSDialog = $( "#manageDSDialog" ).dialog({
+        autoOpen: false,
+        modal: true,
+        width: 750,
+        minWidth: 600,
+        buttons: {
+            Delete: function() {
+
+                $( "#manage_ds_select").find("option:selected").each( function() {
+                    myKit.deleteDatastream($(this).val());
+                });
+                $( this ).dialog( "close" );
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+            }
+        },
+        close: function() {
+        }
+    });
+
+    $('#manageDS').click(function(){
+        manageDSDialog.dialog("open");
+
+        $.each( myKit.kitConfig, function(idx, cfg) {
+            var units = cfg.units=="" || cfg.units == undefined ? "" : " ("+cfg.units+")";
+            $("#manage_ds_select").append("<option value='"+cfg.datastream+"'>"+ (cfg.name ? (cfg.name + " ["+cfg.datastream+"] ") : cfg.datastream) + units+"</option>");
+        });
+        return false;
+    });
+};
+
+XivelyKit.prototype.config = function() {
+    var myKit = this;
+
+    this.createAddDSDialog();
+    this.createManageDSDialog();
 
     this.tag = "#xivelyKit-"+this.getId();
 
-    myKit.setupGraphs(JSON.parse(myKit.getConfig()));
+    this.kitConfig = JSON.parse(this.getConfig());
+
+    this.setupGraphs();
 
     var fromTimestamp = $('#fromTimestamp');
     var toTimestamp = $('#toTimestamp');
@@ -218,11 +263,13 @@ IOSTP.getInstance().register( theKit );
 
 
 //*****************************************GRAPH WRAPPER***************************************
-function Graph(i) {
+function Graph(i,kit) {
     this.index = i;
     //for help on colorblind colors, see  http://www.mrexcel.com/forum/lounge-v-2-0/374530-color-choices-colorblind-viewers.html
     this.colorBlindColors = new Array("#F0E442","#0072B2","#D55E00","#CC79A7","#2B9578","#56B4E9","#E69F00","#000000");
     this.colorBlindColorIndex = 0;
+    this.datastreams = [];
+    this.kit = kit;
 }
 Graph.prototype.getUnits = function() {
     return this.units;
@@ -286,22 +333,83 @@ Graph.prototype.getNextColor = function() {
     this.colorBlindColorIndex = ++this.colorBlindColorIndex % this.colorBlindColors.length;
     return color;
 };
+
+Graph.prototype.updateLegend  = function() {
+    this.getLegendDiv().empty();
+    this.setLegend(new Rickshaw.Graph.Legend( {
+        element: document.querySelector(this.kit.tag+'-'+this.getId()+'-legend'),
+        graph:   this.getRickshawGraph()
+    } ) );
+
+    if( this.getRickshawGraph().series.length > 1 ) {
+        this.setToggle(new Rickshaw.Graph.Behavior.Series.Toggle({
+            graph:  this.getRickshawGraph(),
+            legend: this.getLegend()
+        }));
+    }
+};
+
+Graph.prototype.hasDatastream = function(ds) {
+    var found = false;
+    this.rickshawGraph.series.forEach( function(serie) {
+        if( serie.datastream == ds) {
+            found = true;
+        }
+    });
+    return found;
+};
+
+/**
+ * removes the series from the graph
+ * @param ds
+ * @returns true if the graph is empty, false otherwise
+ */
+Graph.prototype.removeSeries = function(ds) {
+    if( this.hasDatastream(ds) ) {
+        for( var i=0; i<this.rickshawGraph.series.length; i++ ) {
+            if( this.rickshawGraph.series[i].datastream == ds ) {
+                this.rickshawGraph.series.splice(i,1);
+            }
+        }
+        if( this.rickshawGraph.series.length == 0 ) {  //no more series, remove graph
+            return true;
+        } else {
+            this.rickshawGraph.update();
+            this.updateLegend();
+            return false;
+        }
+    }
+};
+Graph.prototype.clear = function() {
+    this.rickshawGraph = undefined;
+    $(this.kit.tag+'-'+this.getId()).empty();
+    $(this.kit.tag+'-'+this.getId()+'-legend').empty();
+    $(this.kit.tag+'-'+this.getId()+'-yAxis').empty();
+//    $(this.kit.tag+'-graphWrapper-'+this.index).empty();
+
+};
+Graph.prototype.destroy = function() {
+    this.getSlider().graph.remove(this.getRickshawGraph());
+    this.clear();
+    $(this.kit.tag+'-graphWrapper-'+this.index).empty();
+};
 //*************************************END OF GRAPH WRAPPER************************************
 
 
 XivelyKit.prototype.clearGraphs = function() {
     for( var key in this.graphs ) {
         if( this.graphs.hasOwnProperty(key)) {
-            this.graphs[key].rickshawGraph = undefined;
-            $(this.tag+'-'+this.graphs[key].getId()).empty();
-            $(this.tag+'-'+this.graphs[key].getId()+'-legend').empty();
-            $(this.tag+'-'+this.graphs[key].getId()+'-yAxis').empty();
+            this.graphs[key].clear();
+//            this.graphs[key].rickshawGraph = undefined;
+//            $(this.tag+'-'+this.graphs[key].getId()).empty();
+//            $(this.tag+'-'+this.graphs[key].getId()+'-legend').empty();
+//            $(this.tag+'-'+this.graphs[key].getId()+'-yAxis').empty();
         }
     }
 };
 
 XivelyKit.prototype.addGraph = function(i) {
-    this.graphs[i] = new Graph(i);
+    this.graphs[i] = new Graph(i,this);
     var rootId = this.tag.replace(/^#/,'');
     $(this.tag+' .graphWrapperTemplate').clone().attr('id',rootId+'-graphWrapper-'+i).removeClass("graphWrapperTemplate").removeClass('hidden').appendTo($(this.tag+' .graphs'));
 
@@ -322,20 +430,16 @@ XivelyKit.prototype.addGraph = function(i) {
  * datastream into.  If the units change after the config is defined, the graphs will probably start looking pretty weird as celsius data would be
  * graphed on the same graph as Farhenheit data.
  */
-XivelyKit.prototype.setupGraphs = function(configData) {
-    var myKit = this;
-
+XivelyKit.prototype.setupGraphs = function() {
     var maxGraphId = 0;
-    for(var j=0; j<configData.length; j++ ) {
-        var cfg = configData[j];
+    for(var j=0; j<this.kitConfig.length; j++ ) {
+        var cfg = this.kitConfig[j];
         maxGraphId = Math.max(maxGraphId, cfg.index);
     }
     for( var i=0; i <= maxGraphId; i++ ) {
         this.addGraph(i);
     }
 };
-
-//TODO: we will need to create an addDatastream(cfg) which will create a new graph if necessary and add the cfg to the base configData
 
 XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
 
@@ -403,6 +507,7 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
 
                             // Add Datapoints Array to Graph Series Array
                             var series = {
+                                datastream: cfg.datastream,
                                 name: cfg.name?cfg.name:datastream.id,
                                 data: points,
                                 color: addToGraph.getNextColor()
@@ -460,18 +565,7 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                                 rickshawGraph.update();
                             }
 
-                            addToGraph.getLegendDiv().empty();
-                            addToGraph.setLegend(new Rickshaw.Graph.Legend( {
-                                element: document.querySelector(myKit.tag+'-'+addToGraph.getId()+'-legend'),
-                                graph:   addToGraph.getRickshawGraph()
-                            } ) );
-
-                            if( addToGraph.getRickshawGraph().series.length > 1 ) {
-                                addToGraph.setToggle(new Rickshaw.Graph.Behavior.Series.Toggle({
-                                    graph:  rickshawGraph,
-                                    legend: addToGraph.getLegend()
-                                }));
-                            }
+                            addToGraph.updateLegend();
 
                             // Enable Datapoint Hover Values
                             var hoverDetail = new Rickshaw.Graph.HoverDetail({
@@ -500,16 +594,6 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                             addToGraph.setLegend(legend);
                         }
 
-//                        if( addToGraph.getRickshawGraph().series.length > 1 ) {
-//                            var toggle = addToGraph.getToggle();
-//                            if( !toggle ) {
-//                                toggle = new Rickshaw.Graph.Behavior.Series.Toggle({
-//                                    graph:  addToGraph.getRickshawGraph(),
-//                                    legend: legend
-//                                });
-//                                addToGraph.setToggle(toggle);
-//                            }
-//                        }
                     });
 
                     myKit.kitConfig.push(cfg);
@@ -522,6 +606,22 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
     });
     //******************************************************************************************************************
 
+};
+XivelyKit.prototype.deleteDatastream = function( datastream ) {
+
+    var myKit = this;
+    for( var key in this.graphs ) {
+        if( this.graphs.hasOwnProperty(key)) {
+            if( this.graphs[key].hasDatastream(datastream)) {
+                if( this.graphs[key].removeSeries(datastream) ) {
+                    this.graphs[key].destroy();
+                    this.graphs[key] = undefined;
+                }
+                return;
+            }
+        }
+    }
+    alert("ERROR: datastream: "+datastream+" not found in any graph");
 };
 
 /**
@@ -610,6 +710,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
                                 // Add Datapoints Array to Graph Series Array
                                 var series = {
+                                    datastream: cfg.datastream,
                                     name: cfg.name ? cfg.name : datastream.id,
                                     data: points,
                                     color: graph.getNextColor()
@@ -735,6 +836,10 @@ XivelyKit.prototype.getHtml = function () {
                 <span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>\
                     Add Data Source\
             </a>\
+            <a class="ui-state-default ui-corner-all" id="manageDS" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">\
+                <span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>\
+                    Manage Data Sources\
+            </a>\
         </div>\
         <div id="xivelyKit-'+this.getId()+'">\
             <div class="loading large-12 columns">\
@@ -768,6 +873,14 @@ XivelyKit.prototype.getHtml = function () {
                     <label for="ds_name">What do you want to call it?</label>\
                     <input type="text" name="ds_name" id="ds_name" value="" class="ui-widget-content ui-corner-all" />\
                     <select id="ds_select" multiple></select>\
+                </fieldset>\
+            </form>\
+        </div>\
+        <div id="manageDSDialog" title="Manage your data sources">\
+            <form>\
+                <fieldset class="ui-helper-reset">\
+                    <label for="manage_ds_select">Data Source</label>\
+                    <select id="manage_ds_select" multiple></select>\
                 </fieldset>\
             </form>\
         </div>\
