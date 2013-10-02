@@ -1,11 +1,18 @@
 "use strict";
 
 function XivelyKit(myname) {
+
+    ObservationKit.call(this);
+
     this.name = myname;
     this.graphs = {};
+    this.setConfig("[]");
+    this.super = ObservationKit.prototype;
 }
 
-XivelyKit.prototype = new ObservationKit();  //inherit ObservationKit
+XivelyKit.prototype = Object.create(ObservationKit.prototype);  //inherit ObservationKit
+
+XivelyKit.prototype.constructor = XivelyKit;
 
 // Set xively API Key
 XivelyKit.prototype.setApiKey = function(key) {
@@ -22,14 +29,12 @@ XivelyKit.prototype.getGraphs = function() {
 XivelyKit.prototype.getRickshawGraphs = function() {
     var arr = [];
     for( var key in this.graphs ) {
-        if( this.graphs.hasOwnProperty(key)) {
+        if( this.graphs.hasOwnProperty(key) && this.graphs[key] ) {
             arr.push(this.graphs[key].getRickshawGraph());
         }
     }
     return arr;
 }
-
-XivelyKit.prototype.constructor = XivelyKit; //correct constructor prototype to point to XivelyKit
 
 XivelyKit.prototype.getName = function() {
     return this.name;
@@ -44,14 +49,8 @@ XivelyKit.prototype.render = function() {
     return contents;
 };
 
-XivelyKit.prototype.getTimespan = function() {
-    return this.timespan;
-};
-XivelyKit.prototype.setTimespan = function(t) {
-    this.timespan = t;
-};
-
 XivelyKit.prototype.updateSelectList = function() {
+    var myKit = this;
     var query = [];
     var ds_filterText = $("#ds_filterText").val();
     if( ds_filterText != "" ) {
@@ -77,7 +76,7 @@ XivelyKit.prototype.createAddDSDialog = function() {
 
     var myKit = this;
 
-    var addDSDialog = $( "#newDSDialog" ).dialog({
+    var addDSDialog = $("#newDSDialog" ).dialog({
         autoOpen: false,
         modal: true,
         width: 750,
@@ -85,14 +84,15 @@ XivelyKit.prototype.createAddDSDialog = function() {
         buttons: {
             Add: function() {
 
-                $( "#ds_select").find("option:selected").each( function() {
+                $("#ds_select").find("option:selected").each( function() {
                     var parts = $(this).val().split("!");
                     var start = $('#fromTimestamp').datetimepicker('getDate');
                     var end = $('#toTimestamp').datetimepicker('getDate');
 
-                    myKit.addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2],name:$("#ds_name").val()},  start, end);
+                    myKit.addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2],name:$(myKit.tag+" .ds_name").val()},  start, end);
                 });
                 $( this ).dialog( "close" );
+                myKit.updateManageDSBtn();
             },
             Cancel: function() {
                 $( this ).dialog( "close" );
@@ -103,7 +103,7 @@ XivelyKit.prototype.createAddDSDialog = function() {
         }
     });
 
-    $('#addDS').click(function(){
+    $(myKit.tag+' .addDS').click(function(){
         addDSDialog.dialog("open");
         $.getJSON('plugins/xively/getTags.json.php', function(data){
             var html = "";
@@ -119,22 +119,24 @@ XivelyKit.prototype.createAddDSDialog = function() {
                 }
             });
             html += "<div class='clear'></div>";
-            var filters = $("#ds_filters");
+            var filters = $("#ds_filters");  //TODO.... THIS IS SCREWED UP
             filters.empty();
             filters.append(html);
+//            filters.replaceWith(html);
             $("#ds_select").empty();
+            $("#ds_name").val("");
             $(".dsFilterCheckbox").change(function() {
                 myKit.updateSelectList();
             });
             $("#ds_filterText").keyup( function(ev) {  //call updateSelectList 500ms after last character typed.
 
-                if( this.ds_filterTextTimeout ) {
+                if( myKit.ds_filterTextTimeout ) {
                     clearTimeout(this.ds_filterTextTimeout);
                 }
 
                 this.ds_filterTextTimeout = setTimeout(function() {
-                    this.updateSelectList();
-                    this.ds_filterTextTimeout = false;
+                    myKit.updateSelectList();
+                    myKit.ds_filterTextTimeout = false;
                 }, 500);
 
             });
@@ -142,11 +144,22 @@ XivelyKit.prototype.createAddDSDialog = function() {
         return false;
     });
 };
+
+XivelyKit.prototype.updateManageDSBtn = function() {
+    var myKit = this;
+    setTimeout( function() {
+        if( myKit.getRickshawGraphs().length > 0 ) {
+            $(myKit.tag+" .manageDS").removeClass("hidden");
+        } else {
+            $(myKit.tag+" .manageDS").addClass("hidden");
+        }
+    },1000);
+};
 XivelyKit.prototype.createManageDSDialog = function() {
 
     var myKit = this;
 
-    var manageDSDialog = $( "#manageDSDialog" ).dialog({
+    var manageDSDialog = $("#manageDSDialog").dialog({
         autoOpen: false,
         modal: true,
         width: 750,
@@ -154,10 +167,11 @@ XivelyKit.prototype.createManageDSDialog = function() {
         buttons: {
             Delete: function() {
 
-                $( "#manage_ds_select").find("option:selected").each( function() {
+                $("#manage_ds_select").find("option:selected").each( function() {
                     myKit.deleteDatastream($(this).val());
                 });
                 $( this ).dialog( "close" );
+                myKit.updateManageDSBtn();
             },
             Cancel: function() {
                 $( this ).dialog( "close" );
@@ -167,7 +181,8 @@ XivelyKit.prototype.createManageDSDialog = function() {
         }
     });
 
-    $('#manageDS').click(function(){
+    $(myKit.tag+' .manageDS').click(function(){
+        $("#manage_ds_select").empty();
         manageDSDialog.dialog("open");
 
         $.each( myKit.kitConfig, function(idx, cfg) {
@@ -179,12 +194,14 @@ XivelyKit.prototype.createManageDSDialog = function() {
 };
 
 XivelyKit.prototype.config = function() {
+
+    this.tag = "#xivelyKit-"+this.getId();
+
     var myKit = this;
 
     this.createAddDSDialog();
     this.createManageDSDialog();
 
-    this.tag = "#xivelyKit-"+this.getId();
 
     this.kitConfig = JSON.parse(this.getConfig());
 
@@ -398,12 +415,8 @@ Graph.prototype.destroy = function() {
 
 XivelyKit.prototype.clearGraphs = function() {
     for( var key in this.graphs ) {
-        if( this.graphs.hasOwnProperty(key)) {
+        if( this.graphs.hasOwnProperty(key) && this.graphs[key]) {
             this.graphs[key].clear();
-//            this.graphs[key].rickshawGraph = undefined;
-//            $(this.tag+'-'+this.graphs[key].getId()).empty();
-//            $(this.tag+'-'+this.graphs[key].getId()+'-legend').empty();
-//            $(this.tag+'-'+this.graphs[key].getId()+'-yAxis').empty();
         }
     }
 };
@@ -431,7 +444,7 @@ XivelyKit.prototype.addGraph = function(i) {
  * graphed on the same graph as Farhenheit data.
  */
 XivelyKit.prototype.setupGraphs = function() {
-    var maxGraphId = 0;
+    var maxGraphId = -1;
     for(var j=0; j<this.kitConfig.length; j++ ) {
         var cfg = this.kitConfig[j];
         maxGraphId = Math.max(maxGraphId, cfg.index);
@@ -450,8 +463,7 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
     var maxGraphId = -1;
     var slider = false;
     for( var key in this.graphs ) {
-        if( this.graphs.hasOwnProperty(key)) {
-  //          this.graphs[key].rickshawGraph = undefined;
+        if( this.graphs.hasOwnProperty(key) && this.graphs[key] ) {
             maxGraphId = Math.max(maxGraphId, key);
              if( units == this.graphs[key].getUnits()) {
                  addToGraph = this.graphs[key];
@@ -485,7 +497,9 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                 if( datastream.id == datastreamId ) {
 
                     if( addToGraph === false ) { //we're creating a new graph
-                        slider = myKit.getGraph(maxGraphId).getSlider();
+                        if( maxGraphId >= 0 ) {
+                            slider = myKit.getGraph(maxGraphId).getSlider();
+                        }
                         addToGraph = myKit.addGraph(++maxGraphId);
                     }
                     cfg.index = maxGraphId;
@@ -536,6 +550,17 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                                     series: [series]
                                 });
 
+                                if( ! slider ) {
+                                    slider = new Rickshaw.Graph.RangeSlider({
+                                        graph: [rickshawGraph],
+                                        element: $(myKit.tag + ' .slider'),
+                                        onslide: function(min,max) {
+                                            var tzOffset = new Date().getTimezoneOffset();
+                                            $('#fromTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+min*1000));
+                                            $('#toTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+max*1000));
+                                        }
+                                    });
+                                }
                                 addToGraph.setRickshawGraph(rickshawGraph);
                                 addToGraph.setSlider(slider);
 
@@ -550,12 +575,8 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                                     element: document.querySelector(myKit.tag+'-'+addToGraph.getId()+'-yAxis'),
                                     width: 50,
                                     graph: rickshawGraph,
-                                    //                       orientation: 'left',
-                                    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-                                    ticksTreatment: 'glow'
                                 });
                                 yAxis.render();
-
                             } else {
                                 series.color = addToGraph.getNextColor();
                                 rickshawGraph = addToGraph.getRickshawGraph();
@@ -582,7 +603,6 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                         //we need to hook up the slider AND legends to the new graph
 
                         $(myKit.tag+" .loading").addClass('hidden');
-                        $('.timeControl').removeClass("hidden");
                         slider.graph = myKit.getRickshawGraphs();
 
                         var legend = addToGraph.getLegend();
@@ -611,12 +631,17 @@ XivelyKit.prototype.deleteDatastream = function( datastream ) {
 
     var myKit = this;
     for( var key in this.graphs ) {
-        if( this.graphs.hasOwnProperty(key)) {
-            if( this.graphs[key].hasDatastream(datastream)) {
+        if( this.graphs.hasOwnProperty(key) ) {
+            if( this.graphs[key] && this.graphs[key].hasDatastream(datastream)) {
                 if( this.graphs[key].removeSeries(datastream) ) {
                     this.graphs[key].destroy();
                     this.graphs[key] = undefined;
                 }
+                myKit.kitConfig.forEach(function(cfg) {
+                    if( cfg.datastream == datastream) {
+                        myKit.kitConfig.remove(cfg);
+                    }
+                });
                 return;
             }
         }
@@ -666,8 +691,6 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
     this.clearGraphs();
 
-    $(myKit.tag+" .loading").removeClass('hidden');
-
     var datastreamsToLoad = configData.length;
     var delayedTimeout = null;
 
@@ -692,6 +715,8 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                     var ds_min_value = parseFloat(datastream.min_value) - .25*range;
                     var ds_max_value = parseFloat(datastream.max_value) + .25*range;
                     if( datastream.id == datastreamId ) {
+                        $(myKit.tag+" .loading").removeClass('hidden');
+
                         var graph = myKit.getGraph( graphIndex );
 
                         graph.setUnits((datastream.unit && datastream.unit.label) ? datastream.unit.label : "no units");
@@ -754,10 +779,10 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
                             // we have to do this delayed as we need to wait until all datastreams have loaded before we create the legends and hook up the slider.
                             datastreamsToLoad--;
-                            $(myKit.tag+" .loading").addClass('hidden');
-                            if( delayedTimeout != null ) clearTimeout(delayedTimeout);
+                            if( delayedTimeout !== undefined) clearTimeout(delayedTimeout);
                             delayedTimeout = setTimeout( function() {
                                 if( datastreamsToLoad == 0 ) {
+                                    $(myKit.tag+" .loading").addClass('hidden');
                                     $('.timeControl').removeClass("hidden");
                                     var slider = new Rickshaw.Graph.RangeSlider({
                                         graph: myKit.getRickshawGraphs(),
@@ -831,61 +856,69 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 };
 
 XivelyKit.prototype.getHtml = function () {
-    return '<div style="margin:20px 0">\
-            <a class="ui-state-default ui-corner-all" id="addDS" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">\
-                <span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>\
-                    Add Data Source\
-            </a>\
-            <a class="ui-state-default ui-corner-all" id="manageDS" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">\
-                <span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>\
-                    Manage Data Sources\
-            </a>\
-        </div>\
-        <div id="xivelyKit-'+this.getId()+'">\
-            <div class="loading large-12 columns">\
-                <h2 class="subheader value">Loading Feed Data...</h2>\
-            </div>\
-            <div class="graphs">\
-                <div class="graphWrapperTemplate graphWrapper hidden" >\
-                    <div class="yAxis"></div>\
-                    <div class="graph" ></div>\
-                    <div class="legend"></div>\
-                </div>\
-            </div>\
-            <div class="row" style="padding-left:20px"> <!-- TODO:  figure out why padding-left is needed -->\
-                <div class="large-12 columns" style="overflow-x:auto; margin-left:auto; margin-right:auto; overflow-y:hidden">\
-                    <div class="timeControl hidden" style="width:100%;">\
-                        <input style="width:11em; float:left" type="text" name="fromTimestamp" id="fromTimestamp" value=""/>\
-            			<div class="slider" style="width: 400px; height: 15px; margin: auto; float:left; margin:15px;"></div>\
-                        <input style="width:11em; float:left" type="text" name="toTimestamp" id="toTimestamp" value=""/>\
-                    </div>\
-                </div>\
-            </div>\
-        </div>\
-        <div id="newDSDialog" title="Add a new data source">\
-            <form>\
-                <fieldset class="ui-helper-reset">\
-                    <label for="ds_types">What type of data source?</label>\
-                    <div id="ds_filters"></div>\
-                    <label for="ds_filterText">Specific filter:</label>\
-                    <input type="text" name="ds_filterText" id="ds_filterText" value="" class="ui-widget-content ui-corner-all" />\
-                    <hr>\
-                    <label for="ds_name">What do you want to call it?</label>\
-                    <input type="text" name="ds_name" id="ds_name" value="" class="ui-widget-content ui-corner-all" />\
-                    <select id="ds_select" multiple></select>\
-                </fieldset>\
-            </form>\
-        </div>\
-        <div id="manageDSDialog" title="Manage your data sources">\
-            <form>\
-                <fieldset class="ui-helper-reset">\
-                    <label for="manage_ds_select">Data Source</label>\
-                    <select id="manage_ds_select" multiple></select>\
-                </fieldset>\
-            </form>\
-        </div>\
+    return '\
+         <div id="xivelyKit-'+this.getId()+'">\
+              <div style="margin:20px 0">\
+                  <a class="ui-state-default ui-corner-all addDS" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">\
+                      <span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>\
+                          Add Data Source\
+                  </a>\
+                  <a class="ui-state-default ui-corner-all manageDS" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">\
+                      <span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>\
+                          Manage Data Sources\
+                  </a>\
+              </div>\
+              <div class="loading large-12 columns">\
+                  <h2 class="subheader value">Loading Feed Data...</h2>\
+              </div>\
+              <div class="graphs">\
+                  <div class="graphWrapperTemplate graphWrapper hidden" >\
+                      <div class="yAxis"></div>\
+                      <div class="graph" ></div>\
+                      <div class="legend"></div>\
+                  </div>\
+              </div>\
+              <div class="row" style="padding-left:20px"> <!-- TODO:  figure out why padding-left is needed -->\
+                  <div class="large-12 columns" style="overflow-x:auto; margin-left:auto; margin-right:auto; overflow-y:hidden">\
+                      <div class="timeControl hidden" style="width:100%;">\
+                          <input style="width:11em; float:left" type="text" name="fromTimestamp" id="fromTimestamp" value=""/>\
+                          <div class="slider" style="width: 400px; height: 15px; margin: auto; float:left; margin:15px;"></div>\
+                          <input style="width:11em; float:left" type="text" name="toTimestamp" id="toTimestamp" value=""/>\
+                      </div>\
+                  </div>\
+              </div>\
+         </div>\
     ';
 };
+
+$(function () {   // only include this once per page (not inside every kit instance
+   $("body").append('\
+       <div id="newDSDialog" title="Add a new data source">\
+           <form>\
+               <fieldset class="ui-helper-reset">\
+                   <div id="ds_filters"></div>\
+                   <label>Specific filter:\
+                       <input type="text" name="ds_filterText" id="ds_filterText" value="" class="ui-widget-content ui-corner-all" />\
+                   </label>\
+                   <hr>\
+                   <label>What do you want to call it?\
+                       <input type="text" name="ds_name"   id="ds_name" value="" class="ui-widget-content ui-corner-all" />\
+                   </label>\
+                   <select id="ds_select"></select>\
+               </fieldset>\
+           </form>\
+       </div>\
+       <div id="manageDSDialog" title="Manage your data sources">\
+           <form>\
+               <fieldset class="ui-helper-reset">\
+                   <label>Data Source\
+                       <select id="manage_ds_select" multiple></select>\
+                   </label>\
+               </fieldset>\
+           </form>\
+       </div>\
+   ');
+});
 
 
 //TODO:   Current bugs/edge-cases

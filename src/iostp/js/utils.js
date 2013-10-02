@@ -3,8 +3,8 @@
 /**
  *  cloning of objects
  */
-function clone(src, deep) {
-
+function myClone(src, deep) {
+    console.log("clone entered...deep="+deep);
     var toString = Object.prototype.toString;
     if(!src && typeof src != "object"){
         //any non-object ( Boolean, String, Number ), null, undefined, NaN
@@ -13,11 +13,13 @@ function clone(src, deep) {
 
     //Honor native/custom clone methods
     if(src.clone && toString.call(src.clone) == "[object Function]"){
+        console.log("recursing to native clone.");
         return src.clone(deep);
     }
 
     //DOM Elements
     if(src.nodeType && toString.call(src.cloneNode) == "[object Function]"){
+        console.log("DOM element, use cloneNode");
         return src.cloneNode(deep);
     }
 
@@ -33,6 +35,7 @@ function clone(src, deep) {
 
     //Function
     if(toString.call(src) == "[object Function]"){
+        console.log("we found a function, wrap it");
         //Wrap in another method to make sure == is not true;
         //Note: Huge performance issue due to closures, comment this :)
         return (function(){
@@ -49,17 +52,18 @@ function clone(src, deep) {
         if(deep){
             index = ret.length;
             while(index--){
-                ret[index] = clone(ret[index], true);
+                console.log("cloning index: "+index);
+                ret[index] = myClone(ret[index], true);
             }
         }
     }
     //Object
     else {
+        console.log("we're cloning an object src.constructor: "+src.constructor);
         ret = src.constructor ? new src.constructor() : {};
         for (var prop in src) {
-            ret[prop] = deep
-                ? clone(src[prop], true)
-                : src[prop];
+            console.log("prop = "+prop);
+            ret[prop] = deep ? myClone(src[prop], true) : src[prop];
         }
     }
 

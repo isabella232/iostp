@@ -1,10 +1,16 @@
 "use strict";
 
 function ExampleKit(myname) {
+
+    ObservationKit.call(this);
+
     this.name = myname;
+
+    this.super = ObservationKit.prototype;
+
 }
 
-ExampleKit.prototype = new ObservationKit();  //inherit ObservationKit
+ExampleKit.prototype = Object.create(ObservationKit.prototype);  //inherit ObservationKit
 
 ExampleKit.prototype.constructor = ExampleKit; //correct constructor prototype to point to ExampleKit
 
