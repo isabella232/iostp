@@ -86,8 +86,8 @@ XivelyKit.prototype.createAddDSDialog = function() {
 
                 $("#ds_select").find("option:selected").each( function() {
                     var parts = $(this).val().split("!");
-                    var start = $('#fromTimestamp').datetimepicker('getDate');
-                    var end = $('#toTimestamp').datetimepicker('getDate');
+                    var start = $(myKit.tag+' .fromTimestamp').datetimepicker('getDate');
+                    var end = $(myKit.tag+' .toTimestamp').datetimepicker('getDate');
 
                     myKit.addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2],name:$(myKit.tag+" .ds_name").val()},  start, end);
                 });
@@ -207,8 +207,8 @@ XivelyKit.prototype.config = function() {
 
     this.setupGraphs();
 
-    var fromTimestamp = $('#fromTimestamp');
-    var toTimestamp = $('#toTimestamp');
+    var fromTimestamp = $(myKit.tag+' .fromTimestamp');
+    var toTimestamp = $(myKit.tag+' .toTimestamp');
     fromTimestamp.datetimepicker( {
         onClose:function() {
             var to = toTimestamp.datetimepicker('getDate');
@@ -288,127 +288,129 @@ function Graph(i,kit) {
     this.datastreams = [];
     this.kit = kit;
 }
-Graph.prototype.getUnits = function() {
-    return this.units;
-};
-Graph.prototype.setUnits = function(u) {
-    this.units = u;
-};
+Graph.prototype = {
+    getUnits: function() {
+        return this.units;
+    },
+    setUnits: function(u) {
+        this.units = u;
+    },
 
-Graph.prototype.getId = function() {
-    return "graph-"+this.index;
-};
+    getId: function() {
+        return "graph-"+this.index;
+    },
 
-Graph.prototype.setGraphDiv = function(d) {
-    this.graphDiv = d;
-    return d;
-};
-Graph.prototype.getGraphDiv = function() {
-    return this.graphDiv;
-};
-Graph.prototype.setLegendDiv = function(d) {
-    this.legendDiv = d;
-    return d;
-};
-Graph.prototype.getLegendDiv = function() {
-    return this.legendDiv;
-};
-Graph.prototype.setYAxisDiv = function(d) {
-    this.yAxisDiv = d;
-    return d;
-};
-Graph.prototype.getYAxisDiv = function() {
-    return this.yAxisDiv;
-};
+    setGraphDiv: function(d) {
+        this.graphDiv = d;
+        return d;
+    },
+    getGraphDiv: function() {
+        return this.graphDiv;
+    },
+    setLegendDiv: function(d) {
+        this.legendDiv = d;
+        return d;
+    },
+    getLegendDiv: function() {
+        return this.legendDiv;
+    },
+    setYAxisDiv: function(d) {
+        this.yAxisDiv = d;
+        return d;
+    },
+    getYAxisDiv: function() {
+        return this.yAxisDiv;
+    },
 
-Graph.prototype.setRickshawGraph = function(g) {
-    this.rickshawGraph = g;
-};
-Graph.prototype.getRickshawGraph = function() {
-    return this.rickshawGraph;
-};
-Graph.prototype.setLegend = function(l) {
-    this.legend = l;
-};
-Graph.prototype.getLegend = function () {
-    return this.legend;
-};
-Graph.prototype.setSlider = function(s) {
-    this.slider = s;
-};
-Graph.prototype.getSlider = function () {
-    return this.slider;
-};
-Graph.prototype.setToggle = function(t) {
-    this.toggle = t;
-};
-Graph.prototype.getToggle = function () {
-    return this.toggle;
-};
-Graph.prototype.getNextColor = function() {
-    var color = this.colorBlindColors[this.colorBlindColorIndex];
-    this.colorBlindColorIndex = ++this.colorBlindColorIndex % this.colorBlindColors.length;
-    return color;
-};
+    setRickshawGraph: function(g) {
+        this.rickshawGraph = g;
+    },
+    getRickshawGraph: function() {
+        return this.rickshawGraph;
+    },
+    setLegend: function(l) {
+        this.legend = l;
+    },
+    getLegend: function() {
+        return this.legend;
+    },
+    setSlider: function(s) {
+        this.slider = s;
+    },
+    getSlider: function() {
+        return this.slider;
+    },
+    setToggle: function(t) {
+        this.toggle = t;
+    },
+    getToggle: function() {
+        return this.toggle;
+    },
+    getNextColor: function() {
+        var color = this.colorBlindColors[this.colorBlindColorIndex];
+        this.colorBlindColorIndex = ++this.colorBlindColorIndex % this.colorBlindColors.length;
+        return color;
+    },
 
-Graph.prototype.updateLegend  = function() {
-    this.getLegendDiv().empty();
-    this.setLegend(new Rickshaw.Graph.Legend( {
-        element: document.querySelector(this.kit.tag+'-'+this.getId()+'-legend'),
-        graph:   this.getRickshawGraph()
-    } ) );
+    updateLegend: function() {
+        this.getLegendDiv().empty();
+        this.setLegend(new Rickshaw.Graph.Legend( {
+            element: document.querySelector(this.kit.tag+'-'+this.getId()+'-legend'),
+            graph:   this.getRickshawGraph()
+        } ) );
 
-    if( this.getRickshawGraph().series.length > 1 ) {
-        this.setToggle(new Rickshaw.Graph.Behavior.Series.Toggle({
-            graph:  this.getRickshawGraph(),
-            legend: this.getLegend()
-        }));
-    }
-};
-
-Graph.prototype.hasDatastream = function(ds) {
-    var found = false;
-    this.rickshawGraph.series.forEach( function(serie) {
-        if( serie.datastream == ds) {
-            found = true;
+        if( this.getRickshawGraph().series.length > 1 ) {
+            this.setToggle(new Rickshaw.Graph.Behavior.Series.Toggle({
+                graph:  this.getRickshawGraph(),
+                legend: this.getLegend()
+            }));
         }
-    });
-    return found;
-};
+    },
 
-/**
- * removes the series from the graph
- * @param ds
- * @returns true if the graph is empty, false otherwise
- */
-Graph.prototype.removeSeries = function(ds) {
-    if( this.hasDatastream(ds) ) {
-        for( var i=0; i<this.rickshawGraph.series.length; i++ ) {
-            if( this.rickshawGraph.series[i].datastream == ds ) {
-                this.rickshawGraph.series.splice(i,1);
+    hasDatastream: function(ds) {
+        var found = false;
+        this.rickshawGraph.series.forEach( function(serie) {
+            if( serie.datastream == ds) {
+                found = true;
+            }
+        });
+        return found;
+    },
+
+    /**
+     * removes the series from the graph
+     * @param ds
+     * @returns true if the graph is empty, false otherwise
+     */
+    removeSeries: function(ds) {
+        if( this.hasDatastream(ds) ) {
+            for( var i=0; i<this.rickshawGraph.series.length; i++ ) {
+                if( this.rickshawGraph.series[i].datastream == ds ) {
+                    this.rickshawGraph.series.splice(i,1);
+                }
+            }
+            if( this.rickshawGraph.series.length == 0 ) {  //no more series, remove graph
+                return true;
+            } else {
+                this.rickshawGraph.update();
+                this.updateLegend();
+                return false;
             }
         }
-        if( this.rickshawGraph.series.length == 0 ) {  //no more series, remove graph
-            return true;
-        } else {
-            this.rickshawGraph.update();
-            this.updateLegend();
-            return false;
-        }
-    }
-};
-Graph.prototype.clear = function() {
-    this.rickshawGraph = undefined;
-    $(this.kit.tag+'-'+this.getId()).empty();
-    $(this.kit.tag+'-'+this.getId()+'-legend').empty();
-    $(this.kit.tag+'-'+this.getId()+'-yAxis').empty();
-//    $(this.kit.tag+'-graphWrapper-'+this.index).empty();
+    },
+    clear: function() {
+        this.rickshawGraph = undefined;
+        $(this.kit.tag+'-'+this.getId()).empty();
+        $(this.kit.tag+'-'+this.getId()+'-legend').empty();
+        $(this.kit.tag+'-'+this.getId()+'-yAxis').empty();
+    //    $(this.kit.tag+'-graphWrapper-'+this.index).empty();
 
-};
-Graph.prototype.destroy = function() {
-    this.getSlider().graph.remove(this.getRickshawGraph());
-    this.clear();
-    $(this.kit.tag+'-graphWrapper-'+this.index).empty();
+    },
+    destroy: function() {
+        this.getSlider().graph.remove(this.getRickshawGraph());
+        this.clear();
+        $(this.kit.tag+'-graphWrapper-'+this.index).empty();
+    }
 };
 //*************************************END OF GRAPH WRAPPER************************************
 
@@ -556,10 +558,11 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                                         element: $(myKit.tag + ' .slider'),
                                         onslide: function(min,max) {
                                             var tzOffset = new Date().getTimezoneOffset();
-                                            $('#fromTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+min*1000));
-                                            $('#toTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+max*1000));
+                                            $(myKit.tag+' .fromTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+min*1000));
+                                            $(myKit.tag+' .toTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+max*1000));
                                         }
                                     });
+                                    $(myKit.tag+' .timeControl').removeClass("hidden");
                                 }
                                 addToGraph.setRickshawGraph(rickshawGraph);
                                 addToGraph.setSlider(slider);
@@ -783,14 +786,14 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                             delayedTimeout = setTimeout( function() {
                                 if( datastreamsToLoad == 0 ) {
                                     $(myKit.tag+" .loading").addClass('hidden');
-                                    $('.timeControl').removeClass("hidden");
+                                    $(myKit.tag+' .timeControl').removeClass("hidden");
                                     var slider = new Rickshaw.Graph.RangeSlider({
                                         graph: myKit.getRickshawGraphs(),
                                         element: $(myKit.tag + ' .slider'),
                                         onslide: function(min,max) {
                                             var tzOffset = new Date().getTimezoneOffset();
-                                            $('#fromTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+min*1000));
-                                            $('#toTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+max*1000));
+                                            $(myKit.tag+' .fromTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+min*1000));
+                                            $(myKit.tag+' .toTimestamp').datetimepicker("setDate", new Date(tzOffset*60*1000+max*1000));
                                         }
                                     });
                                     for( var key in myKit.getGraphs() ) {
@@ -868,7 +871,7 @@ XivelyKit.prototype.getHtml = function () {
                           Manage Data Sources\
                   </a>\
               </div>\
-              <div class="loading large-12 columns">\
+              <div class="loading hidden large-12 columns">\
                   <h2 class="subheader value">Loading Feed Data...</h2>\
               </div>\
               <div class="graphs">\
@@ -881,9 +884,9 @@ XivelyKit.prototype.getHtml = function () {
               <div class="row" style="padding-left:20px"> <!-- TODO:  figure out why padding-left is needed -->\
                   <div class="large-12 columns" style="overflow-x:auto; margin-left:auto; margin-right:auto; overflow-y:hidden">\
                       <div class="timeControl hidden" style="width:100%;">\
-                          <input style="width:11em; float:left" type="text" name="fromTimestamp" id="fromTimestamp" value=""/>\
+                          <input style="width:11em; float:left" type="text" name="fromTimestamp" class="fromTimestamp" value=""/>\
                           <div class="slider" style="width: 400px; height: 15px; margin: auto; float:left; margin:15px;"></div>\
-                          <input style="width:11em; float:left" type="text" name="toTimestamp" id="toTimestamp" value=""/>\
+                          <input style="width:11em; float:left" type="text" name="toTimestamp" class="toTimestamp" value=""/>\
                       </div>\
                   </div>\
               </div>\

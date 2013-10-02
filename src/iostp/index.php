@@ -44,7 +44,7 @@ require_once("include/constants.php");
 	<script type="text/javascript" src="plugins/xively/rickshaw.min.js"></script>
     <script type="text/javascript" src="js/iostpFramework.js"></script>
     <script type="text/javascript" src="plugins/xively/jquery-timepickerAddon.js"></script>
-    <script type="text/javascript" src="js/utils.js?foo"></script>
+    <script type="text/javascript" src="js/utils.js"></script>
 
 
     <!--
