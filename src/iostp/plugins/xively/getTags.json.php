@@ -1,6 +1,6 @@
 <?php
 
-require_once("constants.php");
+require_once("/constants.php");
 //error_reporting(-1);
 
 $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);

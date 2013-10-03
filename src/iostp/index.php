@@ -7,7 +7,7 @@ http://usercake.com
 require_once("userAdmin/models/config.php");
 if (!securePage($_SERVER['PHP_SELF'])){die("Authentication error");}
 require_once("userAdmin/models/header.php");
-require_once("include/constants.php");
+require_once("./constants.php");
 
 ?>
 <!DOCTYPE html>
@@ -78,9 +78,11 @@ require_once("include/constants.php");
            kit.config();
            $tabs.tabs("refresh");
            $tabs.tabs("select", $tabs.tabs("length")-1);
+           kits.push(kit);
        }
+       var kits;  //global
        $(function() {
-           var kits = IOSTP.getInstance().configure("<?php
+           kits = IOSTP.getInstance().configure("<?php
                 echo '[]'; // inject configuration data for this user here.
                            // Each element of the array is a JSON string: {type: typeString, name: nameString, configData:"data here"}
                 ?>");
@@ -131,6 +133,7 @@ require_once("include/constants.php");
            $( document ).on( "click","#tabs span.ui-icon-close", function() {
              var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
              var i = $("#"+panelId).index();
+             kits.splice(i,1);
              var delCurSelTab = $("#tabs").tabs("option","selected") == i-1;
              $( "#" + panelId ).remove();
              $tabs.tabs( "refresh" );
@@ -196,7 +199,13 @@ require_once("include/constants.php");
 
 </head>
 <body>
-	<!-- Header -->
+    <div class="hidden">
+      <form>
+        <input type="hidden" id="username" value="<?php echo $loggedInUser->username;?>"/>
+        <input type="hidden" id="token"    value="<?php echo md5($loggedInUser->hash_pw);?>"/>
+      </form>
+    </div>
+    <!-- Header -->
 	<div style="background: #101C24;">
 		<div class="row">
 			<div class="large-12 columns">

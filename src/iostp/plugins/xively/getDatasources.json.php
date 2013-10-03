@@ -1,6 +1,6 @@
 <?php
 
-require_once("constants.php");
+require_once("/constants.php");
 require_once("MysqliDb.php");
 
 //error_reporting(-1);

@@ -51,7 +51,7 @@ if(!$result) {
 
     recursive_copy("../src/iostp", $htdocs);
     // Xively plugin specific-------------------------------------------------
-    copy("constants.php",$htdocs."/plugins/xively/constants.php");
+    copy("constants.php",$htdocs."/constants.php");
     //------------------------------------------------------------------------
 }
 ?>

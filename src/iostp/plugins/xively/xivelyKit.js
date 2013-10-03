@@ -9,7 +9,9 @@ function XivelyKit(myname) {
     this.setConfig("[]");
     this.super = ObservationKit.prototype;
 }
-
+XivelyKit.prototype.getConfig = function() {
+    return JSON.stringify(this.kitConfig);
+}
 XivelyKit.prototype = Object.create(ObservationKit.prototype);  //inherit ObservationKit
 
 XivelyKit.prototype.constructor = XivelyKit;

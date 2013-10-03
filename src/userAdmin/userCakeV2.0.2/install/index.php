@@ -53,6 +53,7 @@ if(isset($_GET["install"]))
 	`title` varchar(150) NOT NULL,
 	`sign_up_stamp` int(11) NOT NULL,
 	`last_sign_in_stamp` int(11) NOT NULL,
+	`kit_data` BLOB NULL,                   /* ADDED TO STANDARD USERCAKE SETUP (for saveState.php) */
 	PRIMARY KEY (`id`)
 	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 	";
@@ -82,9 +83,9 @@ if(isset($_GET["install"]))
 	
 	$configuration_entry = "
 	INSERT INTO `".$db_table_prefix."configuration` (`id`, `name`, `value`) VALUES
-	(1, 'website_name', 'UserCake'),
+	(1, 'website_name', 'IOSTP Portal'),
 	(2, 'website_url', 'localhost/'),
-	(3, 'email', 'noreply@ILoveUserCake.com'),
+	(3, 'email', 'noreply@IOSTP.org'),
 	(4, 'activation', 'false'),
 	(5, 'resend_activation_threshold', '0'),
 	(6, 'language', '/userAdmin/models/languages/en.php'),

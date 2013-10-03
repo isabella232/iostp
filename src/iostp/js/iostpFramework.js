@@ -156,5 +156,19 @@ function IostpException(msg, obj) {
 
 
 $(function () {
-
+    window.onbeforeunload = function() {
+//        console.log("about to issue post");
+//        $.ajax( {
+//                type: "POST",
+//                url:  "/saveState.php",
+//                async: false,
+//                data: {
+//                    username:   $("#username").val(),
+//                    token:      $("#token").val(),
+//                    kitData:    kits
+//                }
+//        });
+//        console.log("done post");
+        return undefined;
+    };
 });
