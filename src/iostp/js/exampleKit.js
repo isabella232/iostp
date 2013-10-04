@@ -6,13 +6,16 @@ function ExampleKit(myname) {
 
     this.name = myname;
 
-    this.super = ObservationKit.prototype;
-
 }
 
 ExampleKit.prototype = Object.create(ObservationKit.prototype);  //inherit ObservationKit
 
 ExampleKit.prototype.constructor = ExampleKit; //correct constructor prototype to point to ExampleKit
+
+ExampleKit.prototype.clone = function() {
+    var other = new ExampleKit(this.getName());
+    return other;
+};
 
 ExampleKit.prototype.getName = function() {
     return this.name;

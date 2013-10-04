@@ -63,9 +63,9 @@ require_once("./constants.php");
           var kitType = $("#kit_types input:checked")[0].value;
           var kit = IOSTP.getInstance().getKitOfType(kitType);
           kit.setName(kitName);
-          addKit(kit);
+          addTab(kit);
        }
-       function addKit(kit) {
+       function addTab(kit) {
            $tabs = $('#tabs').tabs({closable: true});
            var ul = $('#tabs .tabs-ul');
            var divId = "observationKit-" + kit.getId();
@@ -78,19 +78,19 @@ require_once("./constants.php");
            kit.config();
            $tabs.tabs("refresh");
            $tabs.tabs("select", $tabs.tabs("length")-1);
-           kits.push(kit);
+           IOSTP.getInstance().addKit(kit);
        }
-       var kits;  //global
+
        $(function() {
-           kits = IOSTP.getInstance().configure("<?php
+           IOSTP.getInstance().configure("<?php
                 echo '[]'; // inject configuration data for this user here.
                            // Each element of the array is a JSON string: {type: typeString, name: nameString, configData:"data here"}
                 ?>");
 
            tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close'>Remove Tab</span></li>";
 
-           kits.forEach(function (kit) {
-               addKit(kit);
+           IOSTP.getInstance().getUserConfig(false).forEach(function (kit) {
+               addTab(kit);
            });
 
            //setup add new observation kit dialog
@@ -133,7 +133,7 @@ require_once("./constants.php");
            $( document ).on( "click","#tabs span.ui-icon-close", function() {
              var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
              var i = $("#"+panelId).index();
-             kits.splice(i,1);
+             IOSTP.getInstance().removeKit(i);
              var delCurSelTab = $("#tabs").tabs("option","selected") == i-1;
              $( "#" + panelId ).remove();
              $tabs.tabs( "refresh" );

@@ -2,23 +2,27 @@
 
 function XivelyKit(myname) {
 
-    ObservationKit.call(this);
+    ObservationKit.call(this);  //super constructor
 
     this.name = myname;
     this.graphs = {};
-    this.setConfig("[]");
-    this.super = ObservationKit.prototype;
+    this.kitConfig=[];
 }
-XivelyKit.prototype.getConfig = function() {
-    return JSON.stringify(this.kitConfig);
-}
+
 XivelyKit.prototype = Object.create(ObservationKit.prototype);  //inherit ObservationKit
 
 XivelyKit.prototype.constructor = XivelyKit;
 
-// Set xively API Key
-XivelyKit.prototype.setApiKey = function(key) {
-	xively.setKey(key);
+XivelyKit.prototype.clone = function() {
+    var other = new XivelyKit(this.getName());
+    other.setId(this.getId());
+    return other;
+};
+XivelyKit.prototype.getConfig = function() {
+    return JSON.stringify(this.kitConfig);
+};
+XivelyKit.prototype.setConfig = function(c) {
+    this.kitConfig = JSON.parse(c);
 };
 
 XivelyKit.prototype.getGraph = function(index) {
@@ -88,13 +92,9 @@ XivelyKit.prototype.createAddDSDialog = function() {
 
                 $("#ds_select").find("option:selected").each( function() {
                     var parts = $(this).val().split("!");
-                    var start = $(myKit.tag+' .fromTimestamp').datetimepicker('getDate');
-                    var end = $(myKit.tag+' .toTimestamp').datetimepicker('getDate');
-
-                    myKit.addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2],name:$(myKit.tag+" .ds_name").val()},  start, end);
+                    myKit.addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2],name:$("#ds_name").val()});
                 });
                 $( this ).dialog( "close" );
-                myKit.updateManageDSBtn();
             },
             Cancel: function() {
                 $( this ).dialog( "close" );
@@ -121,10 +121,10 @@ XivelyKit.prototype.createAddDSDialog = function() {
                 }
             });
             html += "<div class='clear'></div>";
-            var filters = $("#ds_filters");  //TODO.... THIS IS SCREWED UP
+            var filters = $("#ds_filters");
             filters.empty();
             filters.append(html);
-//            filters.replaceWith(html);
+
             $("#ds_select").empty();
             $("#ds_name").val("");
             $(".dsFilterCheckbox").change(function() {
@@ -277,7 +277,7 @@ var theKit = new XivelyKit();
 //       This way each key can be throttled individually so that one user can't really affect other users
 //theKit.setApiKey("3u1S5zDeKvppr5w177GCxzF7heAxatl88EK0htLVcpaVPUvE");   //robertlight's master api key
 //theKit.setApiKey("6uhS3aF5Pwv4fkNlfBM4c0opqqyQfuSRGa0QjwZG6KKNi5a8");   //calumbarnes api key
-theKit.setApiKey("680dCuji2cKgPYrCsGErbtkRumbCRuUx9WRR3mH9iRFPYPAn");   //iostp READPRIVATE key
+xively.setKey("680dCuji2cKgPYrCsGErbtkRumbCRuUx9WRR3mH9iRFPYPAn");   //iostp READPRIVATE key
 IOSTP.getInstance().register( theKit );
 
 
@@ -458,9 +458,13 @@ XivelyKit.prototype.setupGraphs = function() {
     }
 };
 
-XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
+XivelyKit.prototype.addDatastream = function( cfg ) {
 
     var myKit = this;
+
+    var start = $(myKit.tag+' .fromTimestamp').datetimepicker('getDate');
+    var end = $(myKit.tag+' .toTimestamp').datetimepicker('getDate');
+
 
     var units = cfg.units;
     var addToGraph = false;
@@ -579,7 +583,7 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
                                 var yAxis = new Rickshaw.Graph.Axis.Y( {
                                     element: document.querySelector(myKit.tag+'-'+addToGraph.getId()+'-yAxis'),
                                     width: 50,
-                                    graph: rickshawGraph,
+                                    graph: rickshawGraph
                                 });
                                 yAxis.render();
                             } else {
@@ -628,6 +632,9 @@ XivelyKit.prototype.addDatastream = function( cfg, start, end ) {
         } else {
             window.alert("could not access feed");
         }
+
+        myKit.updateManageDSBtn();
+
     });
     //******************************************************************************************************************
 
