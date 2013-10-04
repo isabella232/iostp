@@ -189,6 +189,9 @@ function IostpException(msg, obj) {
 }
 
 
+/**
+ * every 1000ms, we check to see if the user's config (of all kits) has changed.  If so, we push the data back to the server
+ */
 $(function () {
     var previousConfig;
     setInterval(function(){

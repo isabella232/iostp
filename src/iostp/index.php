@@ -64,6 +64,7 @@ require_once("./constants.php");
           var kit = IOSTP.getInstance().getKitOfType(kitType);
           kit.setName(kitName);
           addTab(kit);
+          IOSTP.getInstance().addKit(kit);
        }
        function addTab(kit) {
            $tabs = $('#tabs').tabs({closable: true});
@@ -78,14 +79,29 @@ require_once("./constants.php");
            kit.config();
            $tabs.tabs("refresh");
            $tabs.tabs("select", $tabs.tabs("length")-1);
-           IOSTP.getInstance().addKit(kit);
        }
 
        $(function() {
-           IOSTP.getInstance().configure("<?php
-                echo '[]'; // inject configuration data for this user here.
-                           // Each element of the array is a JSON string: {type: typeString, name: nameString, configData:"data here"}
-                ?>");
+           IOSTP.getInstance().configure('<?php
+
+$mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
+if(mysqli_connect_errno()) {
+	echo "[]";
+	error_log("Connection Failed: " . mysqli_connect_errno());
+} else {
+    $sql = "SELECT `kit_data` FROM uc_users where user_name = '".$loggedInUser->username."'";
+    $results = $mysqli->query($sql);
+    $row = $results->fetch_row();
+    $kitData = str_replace("\\","\\\\",$row[0]);
+    if( strlen($kitData) == 0 ) {
+        echo "[]";
+    } else {
+        echo $kitData;
+    }
+
+    $mysqli->close();
+}
+                ?>');
 
            tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close'>Remove Tab</span></li>";
 

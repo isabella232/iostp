@@ -16,11 +16,9 @@ $token    = mysql_real_escape_string($_POST['token']);
 $kitData  = mysql_real_escape_string($_POST['kitData']);
 
 $sql = "SELECT `password` FROM uc_users where user_name = '".$username."'";
-error_log("sql: ".$sql);
 
 $results = $mysqli->query($sql);
 
-$options = [];
 $row = $results->fetch_row();
 if( md5($row[0]) != $token ) {
    $msg = "Authentication error, token: ".$token." invalid for user: ".$username;
@@ -29,12 +27,7 @@ if( md5($row[0]) != $token ) {
    return;
 }
 
-error_log("kitData: ".$kitData);
-
 $mysqli->query("UPDATE uc_users set kit_data = '$kitData' where user_name = '$username'");
 
 $mysqli->close();
-echo "done";
-
-error_log("done");
 ?>
