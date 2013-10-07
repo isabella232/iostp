@@ -148,7 +148,7 @@ if(mysqli_connect_errno()) {
            // close icon: removing the tab on click
            $( document ).on( "click","#tabs span.ui-icon-close", function() {
              var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
-             var i = $("#"+panelId).index();
+             var i = $("#"+panelId).index() - 1;
              IOSTP.getInstance().removeKit(i);
              var delCurSelTab = $("#tabs").tabs("option","selected") == i-1;
              $( "#" + panelId ).remove();

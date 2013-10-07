@@ -92,7 +92,7 @@ XivelyKit.prototype.createAddDSDialog = function() {
 
                 $("#ds_select").find("option:selected").each( function() {
                     var parts = $(this).val().split("!");
-                    myKit.addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2],name:$("#ds_name").val()});
+                    addDSDialog.dialog("option","kit").addDatastream({datastream:parts[0]+"!"+parts[1], units:parts[2],name:$("#ds_name").val()});
                 });
                 $( this ).dialog( "close" );
             },
@@ -107,6 +107,7 @@ XivelyKit.prototype.createAddDSDialog = function() {
 
     $(myKit.tag+' .addDS').click(function(){
         addDSDialog.dialog("open");
+        addDSDialog.dialog("option","kit",myKit);
         $.getJSON('plugins/xively/getTags.json.php', function(data){
             var html = "";
             var col=0;
@@ -867,6 +868,11 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
 };
 
+/**
+ * Note that everything is under a "uniqu-ified" div tag - this makes it possible for different instances of kits to exist
+ * nicely together and make it so one instance does not interfere with another instance.
+ * @returns {string}
+ */
 XivelyKit.prototype.getHtml = function () {
     return '\
          <div id="xivelyKit-'+this.getId()+'">\
