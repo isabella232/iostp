@@ -10,6 +10,6 @@ $webhost_port = "8083";
 
 $webhost_name = "localhost";
 
-$productName = "Internet of Standard Things Project";
+$productName = "Internet of School Things Portal";
 
 ?>
