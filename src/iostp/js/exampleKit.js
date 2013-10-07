@@ -12,6 +12,13 @@ ExampleKit.prototype = Object.create(ObservationKit.prototype);  //inherit Obser
 
 ExampleKit.prototype.constructor = ExampleKit; //correct constructor prototype to point to ExampleKit
 
+ExampleKit.prototype.setConfig = function(c) {
+    this.myConfig = c;
+};
+ExampleKit.prototype.getConfig = function() {
+    return this.myConfig;
+};
+
 ExampleKit.prototype.clone = function() {
     var other = new ExampleKit(this.getName());
     return other;
@@ -28,23 +35,21 @@ ExampleKit.prototype.getType = function() {
 ExampleKit.prototype.render = function() {
     return $('\
         <div id="exampleKit-'+this.getId()+'">\
-            <h2>my example page here</h2>\
-            // you can put all your page level html here... make sure you uniq-ify things with your uniqueId \
+            <h2>your config is: <span class="configstring"></span></h2>\
+            you can put all your page level html here...<br/>make sure you uniq-ify things with your uniqueId \
         </div>\
         ');
 };
 
 ExampleKit.prototype.config = function() {
-    if( this.getConfig() === undefined ) {
-        window.alert("here we would configure this - the ExampleKit");
+    if( this.getConfig() == undefined ) {
+        var val = window.prompt("Enter your config:");
+        $("#exampleKit-"+this.getId()+" .configstring").text(val);
+        this.setConfig(val);
     } else {
-        window.alert("I am configuring myself using this data: '"+this.getConfig()+"'");
+        $("#exampleKit-"+this.getId()+" .configstring").text(this.getConfig());
     }
     return this;
-};
-
-ExampleKit.prototype.getConfig = function() {  //return whatever string (usually JSON) which you will be handed on reload
-    return undefined;
 };
 
 

@@ -52,6 +52,7 @@ XivelyKit.prototype.getType = function() {
 
 XivelyKit.prototype.render = function() {
     var contents = $(this.getHtml());
+    this.updateManageDSBtn()
     return contents;
 };
 

@@ -151,6 +151,9 @@ var IOSTP = (function () {   // declare 'Singleton' as the returned value of a s
                         name: kit.getName(),
                         configData: kit.getConfig()
                     });
+                    if( kit.getType().indexOf("Example") != -1) {
+                        console.log("kit config: " + kit.getConfig());
+                    }
                 });
                 return JSON.stringify(cfg);
             } else {
