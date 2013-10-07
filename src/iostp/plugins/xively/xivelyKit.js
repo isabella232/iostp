@@ -407,6 +407,7 @@ Graph.prototype = {
         $(this.kit.tag+'-'+this.getId()).empty();
         $(this.kit.tag+'-'+this.getId()+'-legend').empty();
         $(this.kit.tag+'-'+this.getId()+'-yAxis').empty();
+        $(this.kit.tag+'-'+this.getId()+'-yAxisLabel').empty();
     //    $(this.kit.tag+'-graphWrapper-'+this.index).empty();
 
     },
@@ -439,6 +440,7 @@ XivelyKit.prototype.addGraph = function(i) {
     this.graphs[i].setGraphDiv( $(this.tag+'-graphWrapper-'+i+' .graph').attr('id', graphId));
     this.graphs[i].setLegendDiv($(this.tag+'-graphWrapper-'+i+' .legend').attr('id', legendId));
     this.graphs[i].setYAxisDiv($(this.tag+'-graphWrapper-' +i+' .yAxis').attr('id', yAxisId));
+    $(this.tag+'-graphWrapper-' +i+' .yAxisLabel').attr('id', yAxisId+'Label');
     return this.graphs[i];
 };
 
@@ -588,6 +590,8 @@ XivelyKit.prototype.addDatastream = function( cfg ) {
                                     graph: rickshawGraph
                                 });
                                 yAxis.render();
+                                $(myKit.tag+'-'+addToGraph.getId()+'-yAxisLabel').text(addToGraph.getUnits());
+
                             } else {
                                 series.color = addToGraph.getNextColor();
                                 rickshawGraph = addToGraph.getRickshawGraph();
@@ -843,6 +847,8 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                         });
                                         yAxis.render();
 
+                                        $(myKit.tag+'-'+graph.getId()+'-yAxisLabel').text(graph.getUnits());
+
                                         // Enable Datapoint Hover Values
                                         var hoverDetail = new Rickshaw.Graph.HoverDetail({
                                             graph: graph.getRickshawGraph(),
@@ -892,6 +898,7 @@ XivelyKit.prototype.getHtml = function () {
               </div>\
               <div class="graphs">\
                   <div class="graphWrapperTemplate graphWrapper hidden" >\
+                      <div class="yAxisLabel"></div>\
                       <div class="yAxis"></div>\
                       <div class="graph" ></div>\
                       <div class="legend"></div>\
