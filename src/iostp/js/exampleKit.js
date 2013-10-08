@@ -41,6 +41,14 @@ ExampleKit.prototype.render = function() {
         ');
 };
 
+/**
+ * config() either pops a dialog to ask the user to set up the kit (or perhaps it does nothing and presents the user with some
+ * kind of default view.
+ *
+ * If getConfig() returns a string, then the kit has to prepare itself so that when render() is called, everything looks as it
+ * should based on the getConfig() text.  Usually getConfig() returns JSON which is stored serverside.
+ *
+ */
 ExampleKit.prototype.config = function() {
     if( this.getConfig() == undefined ) {
         var val = window.prompt("Enter your config:");

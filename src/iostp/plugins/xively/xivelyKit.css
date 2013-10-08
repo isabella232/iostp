@@ -36,7 +36,13 @@
     /*bottom: 0;*/
     width:40px
 }
-
+/*.yAxisLabel {*/
+    /*float:left;*/
+    /*z-index:1000;*/
+    /*transform:rotate(-90deg);*/
+    /*-ms-transform:rotate(-90deg); *//* IE 9 */
+    /*-webkit-transform:rotate(-90deg); *//* Safari and Chrome */
+/*}*/
 
 .graphWrapper {
     clear:both;

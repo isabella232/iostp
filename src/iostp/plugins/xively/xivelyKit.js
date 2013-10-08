@@ -172,7 +172,7 @@ XivelyKit.prototype.createManageDSDialog = function() {
             Delete: function() {
 
                 $("#manage_ds_select").find("option:selected").each( function() {
-                    myKit.deleteDatastream($(this).val());
+                    manageDSDialog.dialog("option","kit").deleteDatastream($(this).val());
                 });
                 $( this ).dialog( "close" );
                 myKit.updateManageDSBtn();
@@ -187,6 +187,7 @@ XivelyKit.prototype.createManageDSDialog = function() {
 
     $(myKit.tag+' .manageDS').click(function(){
         $("#manage_ds_select").empty();
+        manageDSDialog.dialog("option","kit",myKit);
         manageDSDialog.dialog("open");
 
         $.each( myKit.kitConfig, function(idx, cfg) {
@@ -651,15 +652,29 @@ XivelyKit.prototype.deleteDatastream = function( datastream ) {
     for( var key in this.graphs ) {
         if( this.graphs.hasOwnProperty(key) ) {
             if( this.graphs[key] && this.graphs[key].hasDatastream(datastream)) {
+                var deletedGraph = false;
                 if( this.graphs[key].removeSeries(datastream) ) {
                     this.graphs[key].destroy();
-                    this.graphs[key] = undefined;
+                    delete this.graphs[key];
+                    deletedGraph = true;
                 }
-                myKit.kitConfig.forEach(function(cfg) {
+                for( var i=0; i< myKit.kitConfig.length; i++ ) {
+                    var cfg = myKit.kitConfig[i];
                     if( cfg.datastream == datastream) {
-                        myKit.kitConfig.remove(cfg);
+                        myKit.kitConfig.splice(i,1);
+                        i--;
+                    } else {
+                        /* NOTE:  a bit of a hack..
+                         * because we store the index of the graph for each datastream, if we are deleting a graph, we need to
+                         * decrement the index of all datastreams which are affected.  The only reason we had to store the index
+                         * that a datastream goes on is that we discover the units of the datastream asyncronously and therefore
+                         * had to know where the datastream was going to be placed before we actually requested the data for the datastream.
+                         */
+                        if( deletedGraph && cfg.index > key ) {
+                            cfg.index = cfg.index-1;
+                        }
                     }
-                });
+                }
                 return;
             }
         }
@@ -856,9 +871,6 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                                 return '<span class="detail_swatch" style="background-color: ' + series.color + ' padding: 4px;"></span>&nbsp;&nbsp;' + parseFloat(y) + '&nbsp;&nbsp;<br>';
                                             }
                                         });
-
-
-
                                     }
                                 }
                             }, 250);
