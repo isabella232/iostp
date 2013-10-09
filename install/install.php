@@ -43,6 +43,11 @@ if( is_dir($userAdminDir) ) {
 recursive_copy($userCakeDir, $userAdminDir);
 
 
+
+if( startsWith($htdocs,"/opt/bitnami") ) {  // we only need .htaccess when running in our sandboxes
+   delete( $htdocs."/.htaccess" );
+}
+
 $result = file_get_contents("http://".$webhost_name.":".$webhost_port."/userAdmin/install/index.php?install=true");
 
 if(!$result) {
@@ -57,9 +62,6 @@ if(!$result) {
 
     recursive_copy("../src/iostp", $htdocs);
 
-    if( startsWith($htdocs,"/opt/bitnami") ) {  // we only need .htaccess when running in our sandboxes
-       delete( $htdocs."/.htaccess" );
-    }
     // Xively plugin specific-------------------------------------------------
     copy("constants.php",$htdocs."/constants.php");
     //------------------------------------------------------------------------
