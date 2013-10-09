@@ -44,9 +44,11 @@ recursive_copy($userCakeDir, $userAdminDir);
 
 
 
-if( startsWith($htdocs,"/opt/bitnami") ) {  // we only need .htaccess when running in our sandboxes
-   echo "Production installation, no need for ".$htdocs."/.htaccess - deleting...\n";
-   unlink( glob($htdocs."/{,.}*", GLOB_BRACE);
+if( ! startsWith($htdocs,"/opt/bitnami") ) {  // we only need .htaccess when running in our sandboxes
+   echo "Sandbox installation, need to create ".$htdocs."/.htaccess   ...\n";
+   $fp = fopen($htdocs."/.htaccess","a+");
+   fwrite($fp,"ModPagespeed off\n");
+   fclose($fp);
 }
 
 $result = file_get_contents("http://".$webhost_name.":".$webhost_port."/userAdmin/install/index.php?install=true");
