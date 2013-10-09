@@ -227,7 +227,7 @@ if(mysqli_connect_errno()) {
 			<div class="large-12 columns">
 				<h1 style="color: #FFF; text-shadow: 0px 1px 0px #000;">
 			          <?php echo $productName; ?>
-                      <a href="/userAdmin/logout.php" class="hide-for-medium hide-for-small"><img style="position: absolute; top: 10%; right: 0; border: 0;" width=70 height=70 src="img/logoutBtn.png" alt="Logout"></a>
+                      <a href="/userAdmin/logout.php" class="hide-for-small"><img style="position: absolute; top: 10%; right: 0; border: 0;" width=70 height=70 src="img/logoutBtn.png" alt="Logout"></a>
                 </h1>
 			</div>
 		</div>

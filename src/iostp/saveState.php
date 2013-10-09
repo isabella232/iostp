@@ -1,5 +1,4 @@
 <?php
-error_log("entering saveState.php");
 
 require_once("./constants.php");
 //error_reporting(-1);

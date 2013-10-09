@@ -1,8 +1,6 @@
-#!/usr/bin/php -q
 <?php
 
-require_once("install/constants.php");
-//error_reporting(-1);
+// -- require_once("install/constants.php");
 
 function getFeedData($user, $page) {
     $context = stream_context_create(array(
@@ -18,7 +16,7 @@ function getFeedData($user, $page) {
 }
 
 $xivelyUser = "iostp";
-$schoolsCsvFile = "schools.csv";
+$schoolsCsvFile = "/usr/share/schools.csv";
 
 $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 if(mysqli_connect_errno()) {
@@ -151,7 +149,7 @@ for( $page = 0; $nFeedsProcessed < $nFeedsToProcess || $nFeedsToProcess==-1; $pa
 
 // Read in the schools.csv data into SCHOOL_LOCATIONS_TEMP
 
-echo "\n\nProcessing schools.csv\n";
+echo "\n\nProcessing /usr/share/schools.csv\n";
 $header = NULL;   //NAME,LAT,LONG,ELEV,ZIP
 $insertSchoolStmt = $mysqli->prepare("INSERT INTO SCHOOL_LOCATIONS_TEMP (NAME,LATITUDE,LONGITUDE,ELEVATION,ZIP) VALUES (?,?,?,?,?)");
 if (file_exists($schoolsCsvFile) && is_readable($schoolsCsvFile) && ($handle = fopen($schoolsCsvFile, 'r')) !== FALSE) {

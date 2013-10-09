@@ -46,7 +46,4 @@ if( $count > 0 ) {
 
 $output = "[".join(",",$arr)."]";
 echo $output;
-
-trigger_error("DONE getDatasources.json.php:   ".$output, E_USER_NOTICE);
-
 ?>

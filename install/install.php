@@ -4,6 +4,12 @@
 require_once("constants.php");
 require_once("functions.php");
 
+function startsWith($haystack, $needle)
+{
+    return !strncmp($haystack, $needle, strlen($needle));
+}
+
+
 $longopts  = array(
     "htdocs:",         // Required where htdocs root is 
     "optional::",    // Optional value
@@ -50,9 +56,26 @@ if(!$result) {
     }
 
     recursive_copy("../src/iostp", $htdocs);
+
+    if( startsWith($htdocs,"/opt/bitnami") ) {  // we only need .htaccess when running in our sandboxes
+       delete( $htdocs."/.htaccess" );
+    }
     // Xively plugin specific-------------------------------------------------
     copy("constants.php",$htdocs."/constants.php");
     //------------------------------------------------------------------------
+
+    echo "creating /usr/bin/freshenData.php\n";
+    $fp = fopen("/usr/bin/freshenData.php", "a+");
+    fwrite($fp, "#!/usr/bin/php -q\n");
+    $header = file_get_contents("./constants.php");
+    fwrite($fp, $header."\n");
+    $script = file_get_contents("../freshenData.php");
+    fwrite($fp, $script);
+    fclose($fp);
+
+    if( !file_exists("/usr/share/iostp")) mkdir("/usr/share/iostp");
+
+    copy("../schools.csv", "/usr/share/iostp/schools.csv");
 }
 ?>
 
