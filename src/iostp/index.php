@@ -89,6 +89,7 @@ if(mysqli_connect_errno()) {
 	echo "[]";
 	error_log("Connection Failed: " . mysqli_connect_errno());
 } else {
+    trigger_error("User: ".$loggedInUser->username."\n",E_USER_NOTICE);
     $sql = "SELECT `kit_data` FROM uc_users where user_name = '".$loggedInUser->username."'";
     $results = $mysqli->query($sql);
     $row = $results->fetch_row();
