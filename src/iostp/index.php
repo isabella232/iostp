@@ -4,10 +4,10 @@
 UserCake Version: 2.0.1
 http://usercake.com
 */
-require_once("userAdmin/models/config.php")  || die("Could not load config.php");
+require_once("userAdmin/models/config.php");
 if (!securePage($_SERVER['PHP_SELF'])){die("Authentication error");}
-require_once("userAdmin/models/header.php")  || die("Could not load header.php");
-require_once("constants.php")  || die("Could not load constants.php");
+require_once("userAdmin/models/header.php");
+require_once("constants.php");
 
 ?>
 <!DOCTYPE html>

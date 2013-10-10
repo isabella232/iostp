@@ -45,8 +45,8 @@ recursive_copy($userCakeDir, $userAdminDir);
 
 
 if( ! startsWith($htdocs,"/opt/bitnami") ) {  // we only need .htaccess when running in our sandboxes
-   echo "Sandbox installation, need to create ".$htdocs."/.htaccess   ...\n";
-   $fp = fopen($htdocs."/.htaccess","a+");
+   echo "Sandbox installation.  We will create ".$htdocs."/.htaccess   ...\n";
+   $fp = fopen($htdocs."/.htaccess","w");
    fwrite($fp,"ModPagespeed off\n");
    fclose($fp);
 }
@@ -69,9 +69,19 @@ if(!$result) {
     copy("constants.php",$htdocs."/constants.php");
     //------------------------------------------------------------------------
 
-    echo "creating /usr/bin/freshenData.php\n";
-    $fp = fopen("/usr/bin/freshenData.php", "a+");
-    fwrite($fp, "#!/usr/bin/php -q\n");
+    if( startsWith($htdocs,"/opt/bitnami") ) {  // we create freshenData.php in /usr/bin for production (since we are running as sudo)
+        echo "Production installation.... creating /usr/bin/freshenData.php      schools.csv file is in /usr/share/schools.csv\n";
+        $fp = fopen("/usr/bin/freshenData.php", "w");
+        fwrite($fp, "#!/usr/bin/php -q\n");
+        fwrite($fp, "<?php \$schoolsCsvFile = \"/usr/share/schools.csv\"; ?>");
+        copy("../schools.csv", "/usr/share/iostp/schools.csv");
+    } else {
+        echo "Sandbox installation, creating /tmp/freshenData.php     schools.csv file is in /tmp/schools.csv\n";
+        $fp = fopen("/tmp/freshenData.php","w");
+        fwrite($fp, "#!/usr/bin/php -q\n");
+        fwrite($fp, "<?php \$schoolsCsvFile = \"/tmp/schools.csv\"; ?>");
+        copy("../schools.csv", "/tmp/schools.csv");
+    }
     $header = file_get_contents("./constants.php");
     fwrite($fp, $header."\n");
     $script = file_get_contents("../freshenData.php");
@@ -80,7 +90,6 @@ if(!$result) {
 
     if( !file_exists("/usr/share/iostp")) mkdir("/usr/share/iostp");
 
-    copy("../schools.csv", "/usr/share/iostp/schools.csv");
 }
 ?>
 

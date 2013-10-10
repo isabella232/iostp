@@ -16,7 +16,6 @@ function getFeedData($user, $page) {
 }
 
 $xivelyUser = "iostp";
-$schoolsCsvFile = "/usr/share/schools.csv";
 
 $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 if(mysqli_connect_errno()) {
