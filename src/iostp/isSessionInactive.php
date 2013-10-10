@@ -30,6 +30,7 @@ $row = $results->fetch_row();
 if( md5($row[0]) != $token ) {
    $msg = "Authentication error, token: ".$token." invalid for user: ".$username;
    echo "TRUE";  //we are inactive
+
    error_log($msg." - user's session is inactive");
 } else if( $action == "reset" ) {  //reset the timestamp to 'now'
     $date = new DateTime();
