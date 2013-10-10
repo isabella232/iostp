@@ -224,11 +224,27 @@ $(function () {
             success: function(result) {
                 if( result != "TRUE" ) {
                     window.location.replace("http://iostp.org/sessionTimedout.php");
+                } else {
+                    console.log("Session is active");
                 }
             },
             error: function() {
+                console.log("Error on server: isSessionInactive.php");
                 window.location.replace("http://iostp.org/");
             }
         });
-    }, 30000);  //every 30 seconds
+    }, 10000);  //every 10 seconds
+
+    // reset the timestamp on the server when page is first loaded.
+    $.ajax( {
+            type: "POST",
+            url: "/isSessionInactive.php",
+            async: false,
+            data: {
+                username: $("#username").val(),
+                token:    $("#token").val(),
+                action:   "reset"
+            }
+        }
+    );
 });

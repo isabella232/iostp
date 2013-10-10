@@ -30,6 +30,7 @@ if(mysqli_connect_errno()) {
 
 $username = mysql_real_escape_string($_POST['username']);
 $token    = mysql_real_escape_string($_POST['token']);
+$action   = $_POST['action'];
 
 $sql = "SELECT `password`,`last_kit_save_stamp` FROM uc_users where user_name = '".$username."'";
 
@@ -41,6 +42,9 @@ if( md5($row[0]) != $token ) {
    echo "TRUE";  //we are inactive
    destroySession("userCakeUser");
    error_log($msg." - user's session is inactive");
+} else if( $action == "reset" ) {  //reset the timestamp to 'now'
+    $date = new DateTime();
+    $mysqli->query("UPDATE uc_users set last_kit_save_stamp=".$date->getTimestamp()." where user_name = '$username'");
 } else {
 
     $date = new DateTime();
@@ -55,6 +59,5 @@ if( md5($row[0]) != $token ) {
        echo "FALSE";
     }
 }
-
 $mysqli->close();
 ?>
