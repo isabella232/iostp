@@ -8,7 +8,7 @@ if(isUserLoggedIn())
     trigger_error("Logging user '".$loggedInUser->username."' out.",E_USER_NOTICE);
 	$loggedInUser->userLogOut();
 } else {
-    trigger_error("User '".$loggedInUser->username."' not logged in", E_USER_ERROR);
+    trigger_error("User not logged in", E_USER_NOTICE);
 }
 
 ?>
