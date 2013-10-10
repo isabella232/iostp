@@ -84,7 +84,7 @@ if(isset($_GET["install"]))
 	$configuration_entry = "
 	INSERT INTO `".$db_table_prefix."configuration` (`id`, `name`, `value`) VALUES
 	(1, 'website_name', 'IOSTP Portal'),
-	(2, 'website_url', 'localhost/'),
+	(2, 'website_url', 'IOSTP.org/'),
 	(3, 'email', 'noreply@IOSTP.org'),
 	(4, 'activation', 'false'),
 	(5, 'resend_activation_threshold', '0'),

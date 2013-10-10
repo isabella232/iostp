@@ -1,0 +1,60 @@
+AWS Provisioning Procedure:
+
+  1) As you deploy your vm, you have to change the security group to allow connection to port 22,443,80 from 0.0.0.0/0.
+     This can be changed after the instance is deployed.
+
+  2) After startup, login as bitnami@ip-here  and issue the following:
+        $ sudo apt-get install sendmail-bin
+        $ sudo apt-get install mailutils
+        $ sudo apt-get install sensible-mda
+        $ sudo apt-get install mysql-client-core-5.5
+
+  3) Test outgoing mail
+        $ mail yourEmailAddr@yourdomain
+          subject: test
+          blah blah - this is a test
+          ctrl-D
+     Check that the mail was sent...
+
+  4) setup mysql so that the client can be used without issuing the "use_lampstack" command to setup environment
+        $ sudo mkdir /var/run/mysqld
+        $ cd /var/run/mysqld
+        $ sudo ln -s /opt/bitnami/mysql/tmp/mysql.sock mysqld.sock
+
+  5) login to mysql:
+        $ cd /opt/bitnami
+        $ ./use_lampstack
+        $ mysql -u root -pbitnami
+        mysql> set password for root@localhost = PASSWORD('s3cr3t');
+        mysql> create database iostp;
+
+  6) pull the release down from github
+        $ cd [rootDir];
+        $ git clone https://github.com/robertlight/iostp.git
+    or freshen it
+        $ cd [rootDir]/iostp
+        $ git pull
+
+  7) Install the IOSTP portal software:
+        $ cd [root-dir]/iostp/install
+        $ sudo ./install.php --htdocs=/opt/bitnami/apache2/htdocs
+
+  8) change /opt/bitnami/php/etc/php.ini,  uncomment/enable 'sendmail_path' to read:
+          sendmail_path = "env -i /usr/sbin/sendmail -t -i"
+
+  9) make php available as a shell script processor
+       $ cd /usr/bin
+       $ sudo ln -s /opt/bitnami/php/bin/php php
+
+  10) create an admin user (1st user becomes administrator)
+      in browser, goto: http://iostp.org/userAdmin/register.php
+
+  11) freshen the xively cached data
+       In production mode:
+          $ /usr/bin/freshenData.php
+       In sandbox mode:
+          $ /tmp/freshenData.php
+
+  12) Setup a user "xively" which will run the freshenData.php cron job
+       $ sudo adduser --ingroup user xively
+       $ sudo passwd s3cr3t-xively!

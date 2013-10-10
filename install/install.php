@@ -51,10 +51,15 @@ if( ! startsWith($htdocs,"/opt/bitnami") ) {  // we only need .htaccess when run
    fclose($fp);
 }
 
-$result = file_get_contents("http://".$webhost_name.":".$webhost_port."/userAdmin/install/index.php?install=true");
+$apacheWebServer = "http://localhost:80/";  //production
+if( ! startsWith($htdocs,"/opt/bitnami") ) {  // Sandbox
+    $apacheWebServer = "http://localhost:8083/";
+}
+$result = file_get_contents($apacheWebServer."userAdmin/install/index.php?install=true");
 
 if(!$result) {
-   echo "I don't think your webserver has started up yet.";
+   echo "Your webserver has not started @ ".$apacheWebServer."\n";
+   echo "We cannot continue the installation.\n";
 } else {
 
     if( strpos($result,"Connection Failed") !== false ) {
