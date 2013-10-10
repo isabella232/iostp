@@ -11,16 +11,6 @@
 
 require_once("./constants.php");
 
-function destroySession($name)
-{
-	if(isset($_SESSION[$name]))
-	{
-		$_SESSION[$name] = NULL;
-		unset($_SESSION[$name]);
-	}
-}
-
-
 $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 if(mysqli_connect_errno()) {
 	echo "Connection Failed: " . mysqli_connect_errno();
@@ -53,10 +43,8 @@ if( md5($row[0]) != $token ) {
     $row = $results->fetch_row();
     if( $row[0] < $date->getTimestamp()-$UserSessionTTL ) {
        echo "TRUE";
-       destroySession("userCakeUser");
        error_log("User '".$username."' session has timed out");
     } else {
-       error_log("User session for user '".$username."' is still active");
        echo "FALSE";
     }
 }

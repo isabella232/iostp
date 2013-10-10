@@ -222,7 +222,8 @@ $(function () {
                 token:      $("#token").val()
             },
             success: function(result) {
-                if( result != "TRUE" ) {
+                if( result == "TRUE" ) {
+                    destroySession("userCakeUser");
                     window.location.replace("http://iostp.org/sessionTimedout.php");
                 } else {
                     console.log("Session is active");
@@ -230,10 +231,11 @@ $(function () {
             },
             error: function() {
                 console.log("Error on server: isSessionInactive.php");
+                destroySession("userCakeUser");
                 window.location.replace("http://iostp.org/");
             }
         });
-    }, 10000);  //every 10 seconds
+    }, 60000);  //every 60 seconds
 
     // reset the timestamp on the server when page is first loaded.
     $.ajax( {
