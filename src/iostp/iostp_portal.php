@@ -9,6 +9,10 @@ if (!securePage($_SERVER['PHP_SELF'])){die("Authentication error");}
 require_once("userAdmin/models/header.php");
 require_once("constants.php");
 
+if( !isUserLoggedIn() ) {
+    header("Location: /userAdmin/logout.php");
+    die();
+}
 ?>
 <!DOCTYPE html>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en" > <![endif]-->
