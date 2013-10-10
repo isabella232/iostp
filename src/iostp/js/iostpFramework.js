@@ -233,7 +233,7 @@ $(function () {
                 window.location.replace("http://iostp.org/");
             }
         });
-    }, 20000);  //every 20 seconds
+    }, 30000);  //every 30 seconds
 
     // reset the timestamp on the server when page is first loaded.
     $.ajax( {
