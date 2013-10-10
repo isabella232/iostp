@@ -211,4 +211,25 @@ $(function () {
             });
         }
     }, 1000);
+    setInterval(function(){
+        console.log("Checking if our session is still valid");
+        previousConfig = userConfig;
+        $.ajax( {
+            type: "POST",
+            url:  "/isSessionInactive.php",
+            async: true,
+            data: {
+                username:   $("#username").val(),
+                token:      $("#token").val()
+            },
+            success: function(result) {
+                if( result != "TRUE" ) {
+                    window.location.replace("http://iostp.org/sessionTimedout.php");
+                }
+            },
+            error: function() {
+                window.location.replace("http://iostp.org/");
+            }
+        });
+    }, 30000);  //every 30 seconds
 });

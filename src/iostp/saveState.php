@@ -26,7 +26,9 @@ if( md5($row[0]) != $token ) {
    return;
 }
 
-$mysqli->query("UPDATE uc_users set kit_data = '$kitData' where user_name = '$username'");
+$date = new DateTime();
+
+$mysqli->query("UPDATE uc_users set kit_data = '$kitData', last_kit_save_stamp=".$date->getTimestamp()." where user_name = '$username'");
 
 $mysqli->close();
 ?>

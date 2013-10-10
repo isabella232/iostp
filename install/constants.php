@@ -8,4 +8,6 @@ $db_pass = "s3cr3t";    //Password for database user
 
 $productName = "Internet of School Things Portal";
 
+$UserSessionTTL = 10*60*1000;  //10 minute timeout TTL
+
 ?>

@@ -54,6 +54,7 @@ if(isset($_GET["install"]))
 	`sign_up_stamp` int(11) NOT NULL,
 	`last_sign_in_stamp` int(11) NOT NULL,
 	`kit_data` BLOB NULL,                   /* ADDED TO STANDARD USERCAKE SETUP (for saveState.php) */
+	`last_kit_save_stamp` int(11) NULL,
 	PRIMARY KEY (`id`)
 	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 	";
