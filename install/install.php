@@ -78,12 +78,13 @@ if(!$result) {
         echo "Production installation.... creating /usr/bin/freshenData.php      schools.csv file is in /usr/share/iostp/schools.csv\n";
         $fp = fopen("/usr/bin/freshenData.php", "w");
         fwrite($fp, "#!/usr/bin/php -q\n");
-        fwrite($fp, "<?php \$schoolsCsvFile = \"/usr/share/schools.csv\"; ?>");
+        fwrite($fp, "<?php \$schoolsCsvFile = \"/usr/share/iostp/schools.csv\"; ?>");
         copy("../schools.csv", "/usr/share/iostp/schools.csv");
         echo "Creating a crontab entry in /etc/cron.d/iostp\n";
         $cronFp = fopen("/etc/cron.d/iostp","w");
         fwrite($cronFp,"*/5 * * * * xively /usr/bin/freshenData.php");
         fclose($cronFp);
+        system("chmod u+x /usr/bin/freshenData.php");
     } else {
         echo "Sandbox installation, creating /tmp/freshenData.php     schools.csv file is in /tmp/schools.csv\n";
         $fp = fopen("/tmp/freshenData.php","w");

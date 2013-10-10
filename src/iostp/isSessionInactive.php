@@ -30,7 +30,7 @@ if(mysqli_connect_errno()) {
 
 $username = mysql_real_escape_string($_POST['username']);
 $token    = mysql_real_escape_string($_POST['token']);
-$action   = $_POST['action'];
+$action   = isset($_POST['action']) ? $_POST['action'] : "";
 
 $sql = "SELECT `password`,`last_kit_save_stamp` FROM uc_users where user_name = '".$username."'";
 
@@ -56,6 +56,7 @@ if( md5($row[0]) != $token ) {
        destroySession("userCakeUser");
        error_log("User '".$username."' session has timed out");
     } else {
+       error_log("User session for user '".$username."' is still active");
        echo "FALSE";
     }
 }
