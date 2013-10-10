@@ -75,6 +75,10 @@ if(!$result) {
         fwrite($fp, "#!/usr/bin/php -q\n");
         fwrite($fp, "<?php \$schoolsCsvFile = \"/usr/share/schools.csv\"; ?>");
         copy("../schools.csv", "/usr/share/iostp/schools.csv");
+        echo "Creating a crontab entry in /etc/cron.d/IOSTP\n";
+        $cronFp = fopen("/etc/cron.d/IOSTP","w");
+        fwrite($cronFp,"5 * * * * xively /usr/bin/freshenData.php");
+        fclose($cronFp);
     } else {
         echo "Sandbox installation, creating /tmp/freshenData.php     schools.csv file is in /tmp/schools.csv\n";
         $fp = fopen("/tmp/freshenData.php","w");
