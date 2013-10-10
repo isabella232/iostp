@@ -213,7 +213,6 @@ $(function () {
     }, 1000);
     setInterval(function(){
         console.log("Checking if our session is still valid");
-        previousConfig = userConfig;
         $.ajax( {
             type: "POST",
             url:  "/isSessionInactive.php",
