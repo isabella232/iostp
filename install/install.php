@@ -44,17 +44,19 @@ recursive_copy($userCakeDir, $userAdminDir);
 
 
 
-if( ! startsWith($htdocs,"/opt/bitnami") ) {  // we only need .htaccess when running in our sandboxes
+if( ! startsWith($htdocs,"/opt/bitnami") && strpos($htdocs,"lampstack") >= 0 ) {
+   // we only need .htaccess when running in our sandboxes in linux
    echo "Sandbox installation.  We will create ".$htdocs."/.htaccess   ...\n";
    $fp = fopen($htdocs."/.htaccess","w");
    fwrite($fp,"ModPagespeed off\n");
    fclose($fp);
 }
 
-$apacheWebServer = "http://localhost:80/";  //production
-if( ! startsWith($htdocs,"/opt/bitnami") ) {  // Sandbox
+$apacheWebServer = "http://localhost:80/";  //production (or wamp sandbox)
+if( ! startsWith($htdocs,"/opt/bitnami") && strpos($htdocs,"lampstack") >= 0  ) {  // linux sandbox
     $apacheWebServer = "http://localhost:8083/";
 }
+
 $result = file_get_contents($apacheWebServer."userAdmin/install/index.php?install=true");
 
 if(!$result) {
