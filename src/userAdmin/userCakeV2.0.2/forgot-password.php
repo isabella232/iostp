@@ -136,8 +136,8 @@ if(!empty($_POST))
 				//We use the activation token again for the url key it gets regenerated everytime it's used.
 				
 				$mail = new userCakeMail();
-				$confirm_url = lang("CONFIRM")."\n".$websiteUrl."userAdmin/forgot-password.php?confirm=".$userdetails["activation_token"];
-				$deny_url = lang("DENY")."\n".$websiteUrl."userAdmin/forgot-password.php?deny=".$userdetails["activation_token"];
+				$confirm_url = "http://".$websiteUrl."userAdmin/forgot-password.php?confirm=".$userdetails["activation_token"];
+				$deny_url = "http://".$websiteUrl."userAdmin/forgot-password.php?deny=".$userdetails["activation_token"];
 				
 				//Setup our custom hooks
 				$hooks = array(
