@@ -10,6 +10,8 @@ if (!securePage($_SERVER['PHP_SELF'])){die();}
 //Prevent the user visiting the logged in page if he/she is already logged in
 if(isUserLoggedIn()) { header("Location: account.php"); die(); }
 
+$randomString = rand().time();
+
 //Forms posted
 if(!empty($_POST))
 {
@@ -17,8 +19,9 @@ if(!empty($_POST))
 	$email = trim($_POST["email"]);
 	$username = trim($_POST["username"]);
 	$displayname = trim($_POST["displayname"]);
-	$password = trim($_POST["password"]);
-	$confirm_pass = trim($_POST["passwordc"]);
+	$randomString = trim($_POST["randomString"]);
+	$password = trim($_POST["pw_".$randomString]);
+	$confirm_pass = trim($_POST["confirm_".$randomString]);
 	$captcha = md5($_POST["captcha"]);
 	
 	
@@ -112,11 +115,12 @@ echo "
 </p>
 <p>
 <label>Password:</label>
-<input type='password' name='password' />
+<input type='password' name='pw_".$randomString."' />
 </p>
 <p>
 <label>Confirm:</label>
-<input type='password' name='passwordc' />
+<input type='password' name='confirm_".$randomString."' />
+<input type='hidden' name='randomString' value='".$randomString."'/>
 </p>
 <p>
 <label>Email:</label>
@@ -139,6 +143,10 @@ echo "
 </div>
 <div id='bottom'></div>
 </div>
+<script language='javascript'>
+  document.forms[0]['pw_".$randomString."'].value='';
+  document.forms[0]['displayname'].value='';
+</script>
 </body>
 </html>";
 ?>

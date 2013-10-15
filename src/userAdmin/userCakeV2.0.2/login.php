@@ -10,12 +10,15 @@ if (!securePage($_SERVER['PHP_SELF'])){die();}
 //Prevent the user visiting the logged in page if he/she is already logged in
 if(isUserLoggedIn()) { header("Location: /iostp_portal.php"); die(); }
 
+$randomString = rand().time();
+
 //Forms posted
 if(!empty($_POST))
 {
 	$errors = array();
-	$username = sanitize(trim($_POST["username"]));
-	$password = trim($_POST["password"]);
+	$randomString = trim($_POST["randomString"]);
+	$username = sanitize(trim($_POST["un_".$randomString]));
+	$password = trim($_POST["pw_".$randomString]);
 	
 	//Perform some validation
 	//Feel free to edit / change as required
@@ -104,11 +107,13 @@ echo "
 <form name='login' action='".$_SERVER['PHP_SELF']."' method='post'>
 <p>
 <label>Username:</label>
-<input type='text' name='username' />
+<input type='text' name='un_".$randomString."' />
 </p>
 <p>
 <label>Password:</label>
-<input type='password' name='password' />
+<input type='password' name='pw_".$randomString."' />
+<input type='hidden' name='randomString' value='".$randomString."'/>
+
 </p>
 <p>
 <label>&nbsp;</label>
@@ -120,6 +125,12 @@ echo "
 </div>
 <div id='bottom'></div>
 </div>
+<script language='javascript'>
+  setTimeout(function() {
+      document.forms['login']['pw_".$randomString."'].value='';
+      document.forms['login']['un_".$randomString."'].value='';
+      },200);
+</script>
 </body>
 </html>";
 
