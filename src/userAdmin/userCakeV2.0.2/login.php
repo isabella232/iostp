@@ -102,16 +102,21 @@ echo "
 
 echo resultBlock($errors,$successes);
 
+//NOTE: we don't specify the input type='password' for the password field, we set it later via javascript.
+//      This is needed to circumvent firefox from remembering the password
+//      Note also the use of <span>U</span> and <span>P</span> - this is also to circumvent chrome from recognizing
+//      a username/password combo and remembering the form values.
+
 echo "
 <div id='regbox'>
-<form name='login' action='".$_SERVER['PHP_SELF']."' method='post'>
+<form name='login' action='".$_SERVER['PHP_SELF']."' method='post' autocomplete='off'>
 <p>
-<label>Username:</label>
+<label><span>U</span>sername:</label>
 <input type='text' name='un_".$randomString."' />
 </p>
 <p>
-<label>Password:</label>
-<input type='password' name='pw_".$randomString."' />
+<label><span>P</span>assword:</label>
+<input name='pw_".$randomString."' />
 <input type='hidden' name='randomString' value='".$randomString."'/>
 
 </p>
@@ -128,6 +133,7 @@ echo "
 <script language='javascript'>
   setTimeout(function() {
       document.forms['login']['pw_".$randomString."'].value='';
+      document.forms['login']['pw_".$randomString."'].type='password';
       document.forms['login']['un_".$randomString."'].value='';
       },200);
 </script>

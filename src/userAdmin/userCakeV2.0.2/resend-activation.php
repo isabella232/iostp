@@ -77,7 +77,7 @@ if(!empty($_POST) && $emailActivation)
 					{
 						$mail = new userCakeMail();
 						
-						$activation_url = $websiteUrl."activate-account.php?token=".$new_activation_token;
+						$activation_url = $websiteUrl."userAdmin/activate-account.php?token=".$new_activation_token;
 						
 						//Setup our custom hooks
 						$hooks = array(

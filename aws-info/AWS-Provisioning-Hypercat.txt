@@ -8,26 +8,26 @@
 
 3) Install as a service
     $ create file /etc/init.d/hypercat
-    ### BEGIN INIT INFO
-    # Provides:       hypercat
-    # Required-Start:
-    # Required-Stop:
-    # Short-Description: Hypercat Init Script
-    ### END INIT INFO
 
+        ### BEGIN INIT INFO
+        # Provides:       hypercat
+        # Required-Start:
+        # Required-Stop:
+        # Short-Description: Hypercat Init Script
+        ### END INIT INFO
 
-    RESULT=0
+        RESULT=0
 
-    case "$1" in
-      start)
-        cd /usr/share/hypercat
-        java -jar hypercat-server-0.0.1-SNAPSHOT.jar server xively-hypercat.yml &
-        ;;
-      *)
-        ;;
-    esac
+        case "$1" in
+          start)
+            cd /usr/share/hypercat
+            java -jar hypercat-server-0.0.1-SNAPSHOT.jar server xively-hypercat.yml &
+            ;;
+          *)
+            ;;
+        esac
 
-    exit $RESULT
+        exit $RESULT
 
 4) put a link to the startup script in /etc/rc2.d
    ???

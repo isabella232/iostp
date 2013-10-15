@@ -10,18 +10,6 @@ AWS Provisioning Procedure:
   1) As you deploy your vm, you have to change the security group to allow connection to port 22,443,80 from 0.0.0.0/0.
      This can be changed after the instance is deployed.
 
-  2) After startup, login as bitnami@ip-here  and issue the following:
-        $ sudo apt-get install sendmail-bin
-        $ sudo apt-get install mailutils
-        $ sudo apt-get install sensible-mda
-        $ sudo apt-get install mysql-client-core-5.5
-
-  3) Test outgoing mail
-        $ mail yourEmailAddr@yourdomain
-          subject: test
-          blah blah - this is a test
-          ctrl-D
-     Check that the mail was sent...
 
   4) setup mysql so that the client can be used without issuing the "use_lampstack" command to setup environment
         $ sudo mkdir /var/run/mysqld
@@ -44,6 +32,11 @@ AWS Provisioning Procedure:
 
   7) Install the IOSTP portal software:
         $ cd [root-dir]/iostp/install
+     windows:
+        $ mkdir /tmp
+        $ cd [rootDir]/iostp/install
+        $ \BitNami\wampstackXXX\php\php.exe install.php --htdocs=\BitNami\wampstackXXX\apache2
+     linux:
         $ sudo ./install.php --htdocs=/opt/bitnami/apache2/htdocs
 
   8) change /opt/bitnami/php/etc/php.ini,  uncomment/enable 'sendmail_path' to read:

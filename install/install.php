@@ -80,6 +80,9 @@ if(!$result) {
         echo "Production installation.... creating /usr/bin/freshenData.php      schools.csv file is in /usr/share/iostp/schools.csv\n";
         $fp = fopen("/usr/bin/freshenData.php", "w");
         fwrite($fp, "#!/usr/bin/php -q\n");
+
+        if( !file_exists("/usr/share/iostp")) mkdir("/usr/share/iostp");
+
         fwrite($fp, "<?php \$schoolsCsvFile = \"/usr/share/iostp/schools.csv\"; ?>");
         copy("../schools.csv", "/usr/share/iostp/schools.csv");
         echo "Creating a crontab entry in /etc/cron.d/iostp\n";
@@ -99,8 +102,6 @@ if(!$result) {
     $script = file_get_contents("../freshenData.php");
     fwrite($fp, $script);
     fclose($fp);
-
-    if( !file_exists("/usr/share/iostp")) mkdir("/usr/share/iostp");
 
 }
 ?>
