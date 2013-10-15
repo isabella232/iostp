@@ -7,6 +7,12 @@ http://usercake.com
 class userCakeMail {
 	//UserCake uses a text based system with hooks to replace various strs in txt email templates
 	public $contents = NULL;
+
+	public $mime = "text/plain";
+
+	public function setMimeType($mt) {
+	    $mime = $mt;
+	}
 	
 	//Function used for replacing hooks in our templates
 	public function newTemplateMsg($template,$additionalHooks)
@@ -37,7 +43,7 @@ class userCakeMail {
 		global $websiteName,$emailAddress;
 		
 		$header = "MIME-Version: 1.0\r\n";
-		$header .= "Content-type: text/plain; charset=iso-8859-1\r\n";
+		$header .= "Content-type: ".$mime."; charset=iso-8859-1\r\n";
 		$header .= "From: ". $websiteName . " <" . $emailAddress . ">\r\n";
 		
 		//Check to see if we sending a template email.

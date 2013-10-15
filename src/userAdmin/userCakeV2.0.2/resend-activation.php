@@ -76,6 +76,8 @@ if(!empty($_POST) && $emailActivation)
 					else
 					{
 						$mail = new userCakeMail();
+    					$mail->setMimeType("text/html");
+
 						
 						$activation_url = $websiteUrl."userAdmin/activate-account.php?token=".$new_activation_token;
 						
