@@ -887,6 +887,69 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
 };
 
+
+XivelyKit.prototype.downloadCSV = function(configData, start, end) {
+
+    var myKit = this;
+
+    this.clearGraphs();
+
+    var datastreamsToLoad = configData.length;
+    var delayedTimeout = null;
+
+    configData.forEach(function(cfg) {
+
+        var feedId, datastreamId;
+        var parts = cfg.datastream.split("!");
+        if(parts.length >= 2) {
+            feedId = parts[0];
+            datastreamId = parts[1];
+        } else {
+            alert("Malformed datastream specification: "+cfg.datastream);
+        }
+
+        var options = myKit.makeOptions( start, end );
+
+        xively.feed.get(feedId, function(feedData) {
+            if(feedData.datastreams) {
+                feedData.datastreams.forEach(function(datastream) {
+                    if( datastream.id == datastreamId ) {
+
+                        xively.datastream.history(feedId, datastreamId, options, function(datastreamData) {
+
+                            var points = [];
+
+                            // Historical Datapoints
+                            if(datastreamData.datapoints) {
+
+                                // Add Each Datapoint to Array
+                                datastreamData.datapoints.forEach(function(datapoint) {
+                                    points.push({x: new Date(datapoint.at).getTime()/1000.0, y: parseFloat(datapoint.value)});
+                                });
+
+//                                // Add Datapoints Array to Graph Series Array
+//                                var series = {
+//                                    datastream: cfg.datastream,
+//                                    name: cfg.name ? cfg.name : datastream.id,
+//                                    data: points,
+//                                    color: graph.getNextColor()
+//                                };
+
+                            }
+
+                        });
+                    }
+                });
+
+            } else {
+                window.alert("no datastreams found");
+            }
+        });
+    });
+
+
+};
+
 /**
  * Note that everything is under a "uniqu-ified" div tag - this makes it possible for different instances of kits to exist
  * nicely together and make it so one instance does not interfere with another instance.

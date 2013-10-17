@@ -23,6 +23,8 @@ AWS Provisioning Procedure:
         mysql> set password for root@localhost = PASSWORD('s3cr3t');
         mysql> create database iostp;
 
+  5a) if you are using lamp, install php5-mysql packages
+
   6) pull the release down from github
         $ cd [rootDir];
         $ git clone https://github.com/robertlight/iostp.git
@@ -37,7 +39,7 @@ AWS Provisioning Procedure:
         $ cd [rootDir]/iostp/install
         $ \BitNami\wampstackXXX\php\php.exe install.php --htdocs=\BitNami\wampstackXXX\apache2
      linux:
-        $ sudo ./install.php --htdocs=/opt/bitnami/apache2/htdocs
+        $ sudo ./install.php --ht.docs=/opt/bitnami/apache2/htdocs
 
   8) change /opt/bitnami/php/etc/php.ini,  uncomment/enable 'sendmail_path' to read:
           sendmail_path = "env -i /usr/sbin/sendmail -t -i"
