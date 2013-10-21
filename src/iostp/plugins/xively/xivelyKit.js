@@ -19,10 +19,15 @@ XivelyKit.prototype.clone = function() {
     return other;
 };
 XivelyKit.prototype.getConfig = function() {
-    return JSON.stringify(this.kitConfig);
+    return JSON.stringify( {
+        datastreams: this.kitConfig,
+        start: undefined,
+        end:   undefined
+    });
 };
 XivelyKit.prototype.setConfig = function(c) {
-    this.kitConfig = JSON.parse(c);
+    var stuff = JSON.parse(c);
+    this.kitConfig = stuff.datastreams;
 };
 
 XivelyKit.prototype.getGraph = function(index) {
@@ -228,7 +233,7 @@ XivelyKit.prototype.config = function() {
     this.createManageDSDialog();
 
 
-    this.kitConfig = JSON.parse(this.getConfig());
+ //   this.kitConfig = JSON.parse(this.getConfig());
 
     this.setupGraphs();
 
@@ -283,7 +288,9 @@ XivelyKit.prototype.config = function() {
     if( this.getConfig() === undefined ) {
         window.alert("here we would configure UI this kit");
     } else {
-        this.kitConfig = JSON.parse(this.getConfig());
+        var cfg = JSON.parse(this.getConfig());
+        this.kitConfig = cfg.datastreams;
+        //TODO   process start,end here
         this.makeGraphs(this.kitConfig,new Date((new Date()).getTime()-6*60*60*1000),new Date());
     }
 
@@ -1042,6 +1049,7 @@ $(function () {   // only include this once per page (not inside every kit insta
                </fieldset>\
            </form>\
        </div>\
+       <iframe name="hidden_iframe" style="display: none;"></iframe>\
        <form id="getCSV_form" target="hidden_iframe" action="/server/getDataCSV.php" class="hidden" method="POST">\
           <input type="hidden" name="username" class="username"/>\
           <input type="hidden" name="token" class="token"/>\
@@ -1051,7 +1059,6 @@ $(function () {   // only include this once per page (not inside every kit insta
           <input type="hidden" name="kitData" class="kitData"/>\
           <input type="hidden" name="kitName" class="kitName"/>\
        </form>"\
-       <iframe name="hidden_iframe" style="display: none;"></iframe>\
    ');
 });
 

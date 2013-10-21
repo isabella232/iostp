@@ -51,7 +51,7 @@ $xi = \Xively\Api::forge('680dCuji2cKgPYrCsGErbtkRumbCRuUx9WRR3mH9iRFPYPAn');
 
 $kitDataJson = json_decode($kitData);
 
-foreach ( $kitDataJson as $cfg ) {
+foreach ( $kitDataJson->datastreams as $cfg ) {
     //trigger_error("cfg: ".$cfg->datastream, E_USER_NOTICE);
 
     list($feedId, $dsId) = split('!', $cfg->datastream);

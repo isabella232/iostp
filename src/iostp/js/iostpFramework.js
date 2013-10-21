@@ -117,7 +117,7 @@ var IOSTP = (function () {   // declare 'Singleton' as the returned value of a s
             var cfgData = JSON.parse(cfgDataStr);
 
             if (cfgData.length == 0) { //if nothing defined, need to prime the pump with a default kit
-                var defaultKitConfig = '{ "type" : "Xively Data Viewer", "name":"My 1st Observation Kit", "configData":"[{\\"index\\":0, \\"datastream\\": \\"61916!random3600\\"},{\\"index\\":0,\\"name\\":\\"sin()\\", \\"datastream\\": \\"61916!sine3600\\"},{\\"index\\":1, \\"datastream\\":\\"2045025466!temp\\"}]"}';
+                var defaultKitConfig = '{ "type" : "Xively Data Viewer", "name":"My 1st Observation Kit", "configData":"{\\"datastreams\\":[{\\"index\\":0, \\"datastream\\": \\"61916!random3600\\"},{\\"index\\":0,\\"name\\":\\"sin()\\", \\"datastream\\": \\"61916!sine3600\\"},{\\"index\\":1, \\"datastream\\":\\"2045025466!temp\\"}]}"}';
                 cfgData.push(JSON.parse(defaultKitConfig));
                 console.log("after push, cfgData.length = "+cfgData.length);
             }
@@ -133,7 +133,6 @@ var IOSTP = (function () {   // declare 'Singleton' as the returned value of a s
         },
 
         addKit: function(kit) {
-            console.log("adding kit: "+kit.getConfig());
             this.kits.push(kit);
         },
 
