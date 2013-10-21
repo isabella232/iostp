@@ -201,7 +201,7 @@ $(function () {
             previousConfig = userConfig;
             $.ajax( {
                 type: "POST",
-                url:  "/saveState.php",
+                url:  "/server/saveState.php",
                 async: false,
                 data: {
                     username:   $("#username").val(),

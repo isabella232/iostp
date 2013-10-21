@@ -154,8 +154,10 @@ XivelyKit.prototype.updateManageDSBtn = function() {
     setTimeout( function() {
         if( myKit.getRickshawGraphs().length > 0 ) {
             $(myKit.tag+" .manageDS").removeClass("hidden");
+            $(myKit.tag+" .downloadCSV").removeClass("hidden");
         } else {
             $(myKit.tag+" .manageDS").addClass("hidden");
+            $(myKit.tag+" .downloadCSV").addClass("hidden");
         }
     },1000);
 };
@@ -194,6 +196,24 @@ XivelyKit.prototype.createManageDSDialog = function() {
             var units = cfg.units=="" || cfg.units == undefined ? "" : " ("+cfg.units+")";
             $("#manage_ds_select").append("<option value='"+cfg.datastream+"'>"+ (cfg.name ? (cfg.name + " ["+cfg.datastream+"] ") : cfg.datastream) + units+"</option>");
         });
+        return false;
+    });
+
+    $(myKit.tag+' .downloadCSV').click(function(e){
+        e.preventDefault();
+        var start = $(myKit.tag+' .fromTimestamp').datepicker('getDate');
+        var end   = $(myKit.tag+' .toTimestamp').datepicker('getDate');
+        var interval = myKit.makeOptions( start, end).interval;
+
+        $("#getCSV_form .username").val($("#username").val());
+        $("#getCSV_form .token").val($("#token").val());
+        $("#getCSV_form .start").val(start);
+        $("#getCSV_form .end").val(end);
+        $("#getCSV_form .interval").val(interval);
+        $("#getCSV_form .kitData").val(myKit.getConfig());
+        $("#getCSV_form .kitName").val(myKit.getName());
+        $("#getCSV_form").submit();
+
         return false;
     });
 };
@@ -967,6 +987,10 @@ XivelyKit.prototype.getHtml = function () {
                       <span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>\
                           Manage Data Sources\
                   </a>\
+                  <a class="ui-state-default ui-corner-all downloadCSV" href="#" style="padding:6px 6px 6px 17px;text-decoration:none;position:relative">\
+                      <span class="ui-icon ui-icon-plus" style="position:absolute;top:4px;left:1px"></span>\
+                          Download CSV\
+                  </a>\
               </div>\
               <div class="loading hidden large-12 columns">\
                   <h2 class="subheader value">Loading Feed Data...</h2>\
@@ -1018,6 +1042,16 @@ $(function () {   // only include this once per page (not inside every kit insta
                </fieldset>\
            </form>\
        </div>\
+       <form id="getCSV_form" target="hidden_iframe" action="/server/getDataCSV.php" class="hidden" method="POST">\
+          <input type="hidden" name="username" class="username"/>\
+          <input type="hidden" name="token" class="token"/>\
+          <input type="hidden" name="start" class="start"/>\
+          <input type="hidden" name="end" class="end"/>\
+          <input type="hidden" name="interval" class="interval"/>\
+          <input type="hidden" name="kitData" class="kitData"/>\
+          <input type="hidden" name="kitName" class="kitName"/>\
+       </form>"\
+       <iframe name="hidden_iframe" style="display: none;"></iframe>\
    ');
 });
 

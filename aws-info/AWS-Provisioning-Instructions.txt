@@ -35,6 +35,14 @@ AWS Provisioning Procedure:
         $ cd [rootDir]/iostp
         $ git pull
 
+  6a) turn off pagespeed for lampstack (or wampstack) version >  5.4.17-1
+        $ rm /opt/bitnami/apache2/conf/pagespeed*.conf
+
+  6b) comment out the following lines in /opt/bitnami/apache2/conf/httpd.conf
+           #Include conf/pagespeed.conf
+           #Include conf/pagespeed_libraries.conf
+
+
   7) Install the IOSTP portal software:
         $ cd [root-dir]/iostp/install
         $ sudo ./install.php --htdocs=/opt/bitnami/apache2/htdocs
