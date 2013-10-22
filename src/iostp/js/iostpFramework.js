@@ -211,10 +211,9 @@ $(function () {
         }
     }, 1000);
     setInterval(function(){
-        console.log("Checking if our session is still valid");
         $.ajax( {
             type: "POST",
-            url:  "/isSessionInactive.php",
+            url:  "/server/isSessionInactive.php",
             async: true,
             data: {
                 username:   $("#username").val(),
@@ -222,13 +221,13 @@ $(function () {
             },
             success: function(result) {
                 if( result == "TRUE" ) {
-                    window.location.replace("http://iostp.org/sessionTimedout.php");
+                    window.location.replace("/sessionTimedout.php");
                 } else {
                     console.log("Session is active");
                 }
             },
             error: function() {
-                console.log("Error on server: isSessionInactive.php");
+                console.log("Error on server accessing /server/isSessionInactive.php");
                 window.location.replace("http://iostp.org/");
             }
         });
@@ -237,7 +236,7 @@ $(function () {
     // reset the timestamp on the server when page is first loaded.
     $.ajax( {
             type: "POST",
-            url: "/isSessionInactive.php",
+            url: "/server/isSessionInactive.php",
             async: false,
             data: {
                 username: $("#username").val(),

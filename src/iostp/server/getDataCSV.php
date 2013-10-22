@@ -51,8 +51,13 @@ $xi = \Xively\Api::forge('680dCuji2cKgPYrCsGErbtkRumbCRuUx9WRR3mH9iRFPYPAn');
 
 $kitDataJson = json_decode($kitData);
 
+$start = $kitDataJson->start;
+$end   = $kitDataJson->end;
+
+echo "\"TimeStart: (GMT)\",\"".$start."\"\n";
+echo "\"TimeEnd: (GMT)\",\"".$end."\"\n";
+
 foreach ( $kitDataJson->datastreams as $cfg ) {
-    //trigger_error("cfg: ".$cfg->datastream, E_USER_NOTICE);
 
     list($feedId, $dsId) = split('!', $cfg->datastream);
 
@@ -65,11 +70,12 @@ foreach ( $kitDataJson->datastreams as $cfg ) {
         'limit' => 1000,
     ))->get();
 
-    echo "Datastream:,\"".$feedId."!".$dsId."\"\n";
+    echo "FeedId:,\"".$feedId."\"\n";
+    echo "DatastreamId:,\"".$dsId."\"\n";
     echo "Tags:\n";
 
     for ($i = 0; $i < count($r->tags); ++$i) {
-        echo "\"".$r->tags[$i]."\"\n";
+        echo "\"\",\"".$r->tags[$i]."\"\n";
     }
 
     if( isset($r->unit) ) {
@@ -80,6 +86,8 @@ foreach ( $kitDataJson->datastreams as $cfg ) {
         foreach ( $r->datapoints as $p ) {
             echo "\"".$p->at."\",\"".$p->value."\"\n";
         }
+    } else {
+        echo "\"No data in time range\"\n";
     }
 }
 

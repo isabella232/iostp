@@ -19,15 +19,18 @@ XivelyKit.prototype.clone = function() {
     return other;
 };
 XivelyKit.prototype.getConfig = function() {
+    var tag = "#xivelyKit-"+this.getId();
     return JSON.stringify( {
         datastreams: this.kitConfig,
-        start: undefined,
-        end:   undefined
+        start: $(tag+' .fromTimestamp').datepicker('getDate'),
+        end:   $(tag+' .toTimestamp').datepicker('getDate')
     });
 };
 XivelyKit.prototype.setConfig = function(c) {
     var stuff = JSON.parse(c);
     this.kitConfig = stuff.datastreams;
+    this.start = stuff.start;
+    this.end =   stuff.end;
 };
 
 XivelyKit.prototype.getGraph = function(index) {
@@ -256,7 +259,10 @@ XivelyKit.prototype.config = function() {
             inst.dpDiv.css({marginLeft: '-110px'});
         }
     });
+
+//    var maxFrom = myKit.start ?  new Date(Date.parse(myKit.start)) : new Date( new Date().getTime() - 6*60*60*1000);   //TODO: if you want to specify the start-time based on the stored value
     var maxFrom = new Date( new Date().getTime() - 6*60*60*1000);
+
     fromTimestamp.datetimepicker('setDate', maxFrom);
     fromTimestamp.datetimepicker('option', 'maxDateTime', maxFrom);
     fromTimestamp.datetimepicker('option', 'maxDate', maxFrom);
@@ -276,7 +282,10 @@ XivelyKit.prototype.config = function() {
 
         }
     });
+
+//    toTimestamp.datetimepicker('setDate', myKit.end ? new Date(Date.parse(myKit.end)) : new Date());   //TODO: if you want to specify the end-time based on stored value
     toTimestamp.datetimepicker('setDate', new Date());
+
     var maxTo = new Date(Math.min(new Date().getTime(), fromTimestamp.datetimepicker('getDate').getTime()+365*24*60*60*1000));
     toTimestamp.datetimepicker('option', 'maxDateTime', maxTo);
     toTimestamp.datetimepicker('option', 'maxDate', maxTo);;
@@ -286,11 +295,10 @@ XivelyKit.prototype.config = function() {
     fromTimestamp.datetimepicker('option', 'minDate', minFrom);
 
     if( this.getConfig() === undefined ) {
-        window.alert("here we would configure UI this kit");
+        window.alert("Error - config not found.");
     } else {
         var cfg = JSON.parse(this.getConfig());
         this.kitConfig = cfg.datastreams;
-        //TODO   process start,end here
         this.makeGraphs(this.kitConfig,new Date((new Date()).getTime()-6*60*60*1000),new Date());
     }
 
@@ -785,57 +793,60 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
                             var points = [];
 
-                            // Historical Datapoints
-                            if(datastreamData.datapoints) {
-
-                                // Add Each Datapoint to Array
+                            // Add Each Datapoint to Array
+                            if( datastreamData.datapoints ) {
                                 datastreamData.datapoints.forEach(function(datapoint) {
                                     points.push({x: new Date(datapoint.at).getTime()/1000.0, y: parseFloat(datapoint.value)});
                                 });
-
-                                // Add Datapoints Array to Graph Series Array
-                                var series = {
-                                    datastream: cfg.datastream,
-                                    name: cfg.name ? cfg.name : datastream.id,
-                                    data: points,
-                                    color: graph.getNextColor()
-                                };
-
-                                var rickshawGraph = null;
-                                if( graph.getRickshawGraph() == undefined ) {
-
-                                    $(myKit.tag+'-'+graph.getId()).empty();  //get rid of anything that is currently there
-
-                                    // Build Graph
-                                    console.log("about to create a rickshaw graph on id: "+myKit.tag+'-'+graph.getId());
-                                    rickshawGraph = new Rickshaw.Graph( {
-                                        element: document.querySelector(myKit.tag+'-'+graph.getId()),
-                                        width: 600,
-                                        height: 200,
-                                        renderer: 'line',
-                                        min: ds_min_value,
-                                        max: ds_max_value,
-                                        padding: {
-                                            top: 0.02,
-                                            right: 0.02,
-                                            bottom: 0.02,
-                                            left: 0.02
-                                        },
-                                        series: [series]
-                                    });
-
-                                    graph.setRickshawGraph(rickshawGraph);
-                                } else {
-                                    series.color = graph.getNextColor();
-                                    rickshawGraph = graph.getRickshawGraph();
-                                    rickshawGraph.series.push(series);
-                                    rickshawGraph.min = Math.min(rickshawGraph.min, ds_min_value);
-                                    rickshawGraph.max = Math.max(rickshawGraph.max, ds_max_value);
-                                    rickshawGraph.update();
-                                }
-
-                                rickshawGraph.render();
+                            } else {  // no data - need to put dummy stuff in there so that a graph can be displayed.
+                                points.push( {x: start.getTime()/1000, y:0.0});
+                                points.push( {x:   end.getTime()/1000, y:0.0});
                             }
+
+                            // Add Datapoints Array to Graph Series Array
+                            var series = {
+                                datastream: cfg.datastream,
+                                name: cfg.name ? cfg.name : datastream.id,
+                                data: points,
+                                color: graph.getNextColor()
+                            };
+
+                            var rickshawGraph = null;
+                            if( graph.getRickshawGraph() == undefined ) {
+
+                                console.log("about to create a rickshaw graph on id: "+myKit.tag+'-'+graph.getId());
+
+                                $(myKit.tag+'-'+graph.getId()).empty();  //get rid of anything that is currently there
+
+                                // Build Graph
+                                rickshawGraph = new Rickshaw.Graph( {
+                                    element: document.querySelector(myKit.tag+'-'+graph.getId()),
+                                    width: 600,
+                                    height: 200,
+                                    renderer: 'line',
+                                    min: ds_min_value,
+                                    max: ds_max_value,
+                                    padding: {
+                                        top: 0.02,
+                                        right: 0.02,
+                                        bottom: 0.02,
+                                        left: 0.02
+                                    },
+                                    series: [series]
+                                });
+
+                                graph.setRickshawGraph(rickshawGraph);
+                            } else {
+                                console.log(" existing graph needs to be reconfigured");
+                                series.color = graph.getNextColor();
+                                rickshawGraph = graph.getRickshawGraph();
+                                rickshawGraph.series.push(series);
+                                rickshawGraph.min = Math.min(rickshawGraph.min, ds_min_value);
+                                rickshawGraph.max = Math.max(rickshawGraph.max, ds_max_value);
+                                rickshawGraph.update();
+                            }
+
+                            rickshawGraph.render();
 
                             // we have to do this delayed as we need to wait until all datastreams have loaded before we create the legends and hook up the slider.
                             datastreamsToLoad--;

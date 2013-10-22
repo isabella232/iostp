@@ -9,7 +9,7 @@
   * value specified in constants.php
 **/
 
-require_once("./constants.php");
+require_once("../constants.php");
 
 $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 if(mysqli_connect_errno()) {
