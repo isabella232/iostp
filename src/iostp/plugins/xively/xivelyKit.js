@@ -563,7 +563,7 @@ XivelyKit.prototype.addDatastream = function( cfg ) {
                             var points = [];
 
                             // Add Each Datapoint to Array
-                            if( !datastreamData.datapoints ) {
+                            if( datastreamData.datapoints != undefined ) {
                                 datastreamData.datapoints.forEach(function(datapoint) {
                                     points.push({x: new Date(datapoint.at).getTime()/1000.0, y: parseFloat(datapoint.value)});
                                 });
@@ -574,7 +574,7 @@ XivelyKit.prototype.addDatastream = function( cfg ) {
                             // Add Datapoints Array to Graph Series Array
                             var series = {
                                 datastream: cfg.datastream,
-                                name: (cfg.name?cfg.name:datastream.id) + (datastreamData.datapoints ? "" : "(no data)" ),
+                                name: (cfg.name?cfg.name:datastream.id) + (datastreamData.datapoints == undefined ? " (no data)" : ""),
                                 data: points,
                                 color: addToGraph.getNextColor()
                             };
@@ -810,7 +810,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                             // Add Datapoints Array to Graph Series Array
                             var series = {
                                 datastream: cfg.datastream,
-                                name: (cfg.name ? cfg.name : datastream.id) + (datastreamData.datapoints ? "" : " (no data)" ),
+                                name: (cfg.name ? cfg.name : datastream.id) + (datastreamData.datapoints == undefined ? " (no data)" : "" ),
                                 data: points,
                                 color: graph.getNextColor()
                             };
