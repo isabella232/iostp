@@ -1,6 +1,28 @@
 <?php
 
-// -- require_once("install/constants.php");
+$longopts  = array(
+    "include-non-live::",    // Optional - allow including non-live feeds and datastreams
+    "help::",                // optional - get help message
+    "dummyOpt1",     // No value
+    "dummyOpt2",     // No value
+);
+
+
+$OPTIONS = getopt("r:",$longopts);
+
+$includeNonLive = false;
+if( isset($OPTIONS["include-non-live"]) ) {
+   $includeNonLive = true;
+}
+
+if( isset($OPTIONS["help"])) {
+   echo "Usage:  freshenData.php --help  --include-non-live\n";
+   echo "      [--include-non-live]  to include data from non-live feeds and datastreams\n";
+   exit();
+}
+
+
+
 
 function getFeedData($user, $page) {
     $context = stream_context_create(array(
@@ -10,7 +32,6 @@ function getFeedData($user, $page) {
 
    $apiKey = "680dCuji2cKgPYrCsGErbtkRumbCRuUx9WRR3mH9iRFPYPAn";
    $json = file_get_contents("https://api.xively.com/v2/feeds/?user=".$user."&page=".$page."&key=".$apiKey, false, $context);
-   echo "JSON: ".$json;
    $obj = json_decode($json);
    return $obj;
 }
@@ -90,7 +111,7 @@ $nFeedsToProcess = -1;
 // GET THE DATA FROM XIVELY
 for( $page = 0; $nFeedsProcessed < $nFeedsToProcess || $nFeedsToProcess==-1; $page ++ ) {
 
-   echo "Getting datastreams";
+   echo "\nGetting feeds:";
 
     $results = getFeedData($xivelyUser,$page);
     $count = count($results->results);
@@ -110,38 +131,61 @@ for( $page = 0; $nFeedsProcessed < $nFeedsToProcess || $nFeedsToProcess==-1; $pa
        $created=$feed->created;
        $updated=$feed->updated;
        $feedUrl = $feed->feed;
-       $deviceSerial = property_exists($feed, 'device_serial') ? $feed->device_serial : '';
-       $deviceLocationLat  = property_exists($feed,"location") && property_exists($feed->location,"lat") ? $feed->location->lat : 'NULL';
-       $deviceLocationLong = property_exists($feed,"location") && property_exists($feed->location,"lon") ? $feed->location->lon : 'NULL';
 
-       $insertFeedStmt->bind_param('sssisssdd', $id, $title, $deviceSerial, $private, $feedUrl, $created, $updated, $deviceLocationLat, $deviceLocationLong);
-       $insertFeedStmt->execute();
-       $nFeedsProcessed++;
-
+       $live = false;
        if( property_exists($feed,'tags') ) {
            foreach( $feed->tags as $tag ) {
-              $insertFeedTagStmt->bind_param('ss', $id, $tag);
-              $insertFeedTagStmt->execute();
+              if( $tag == "L1V3" ) $live = true;
            }
        }
-       if( property_exists($feed,'datastreams') ) {
-          foreach( $feed->datastreams as $ds ) {
-             $dsId = $ds->id;
-             $dsUID= $id.'!'.$dsId;
-             $dsUnitSymbol = '';
-             $dsUnit =  property_exists($ds,"unit") && property_exists($ds->unit,'label') ? $ds->unit->label : '';
-             $insertDatastreamStmt->bind_param('sssss',$dsId,$id,$dsUnit,$dsUnitSymbol,$dsUID);
-             $insertDatastreamStmt->execute();
-             echo ".";
-             if( property_exists($ds,'tags') ) {
-                foreach( $ds->tags as $tag ) {
-                   $insertDSTagStmt->bind_param('ss', $dsUID, $tag);
-                   if( !$insertDSTagStmt->execute() ) {
-                       echo "\nINFO: found duplicate tag on ".$dsUID." tag:".$tag."\n";
-                   }
-                }
-             }
-          }
+       if( $includeNonLive || $live ) {
+           $deviceSerial = property_exists($feed, 'device_serial') ? $feed->device_serial : '';
+           $deviceLocationLat  = property_exists($feed,"location") && property_exists($feed->location,"lat") ? $feed->location->lat : 'NULL';
+           $deviceLocationLong = property_exists($feed,"location") && property_exists($feed->location,"lon") ? $feed->location->lon : 'NULL';
+
+           $insertFeedStmt->bind_param('sssisssdd', $id, $title, $deviceSerial, $private, $feedUrl, $created, $updated, $deviceLocationLat, $deviceLocationLong);
+           $insertFeedStmt->execute();
+           $nFeedsProcessed++;
+
+           if( property_exists($feed,'tags') ) {
+               foreach( $feed->tags as $tag ) {
+                  $insertFeedTagStmt->bind_param('ss', $id, $tag);
+                  $insertFeedTagStmt->execute();
+               }
+           }
+           if( property_exists($feed,'datastreams') ) {
+              foreach( $feed->datastreams as $ds ) {
+                 $dsId = $ds->id;
+                 $dsUID= $id.'!'.$dsId;
+                 $dsUnitSymbol = '';
+                 $dsUnit =  property_exists($ds,"unit") && property_exists($ds->unit,'label') ? $ds->unit->label : '';
+
+                 $live = false;
+                 if( property_exists($ds,'tags') ) {
+                     foreach( $ds->tags as $tag ) {
+                        if( $tag == "L1V3" ) $live = true;
+                     }
+                 }
+
+                 if( $includeNonLive || $live ) {
+                     $insertDatastreamStmt->bind_param('sssss',$dsId,$id,$dsUnit,$dsUnitSymbol,$dsUID);
+                     $insertDatastreamStmt->execute();
+                     echo ".";
+                     if( property_exists($ds,'tags') ) {
+                        foreach( $ds->tags as $tag ) {
+                           $insertDSTagStmt->bind_param('ss', $dsUID, $tag);
+                           if( !$insertDSTagStmt->execute() ) {
+                               echo "\nINFO: found duplicate tag on ".$dsUID." tag:".$tag."\n";
+                           }
+                        }
+                     }
+                 } else {
+                     echo "\nFeed: ".$id."  Datastream: ".$dsId." is not live";
+                 }
+              }
+           }
+       } else {
+           echo "\nFeed: ".$id." is NOT live";
        }
     }
 }

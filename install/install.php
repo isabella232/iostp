@@ -85,7 +85,7 @@ if(!$result) {
         copy("../schools.csv", "/usr/share/iostp/schools.csv");
         echo "Creating a crontab entry in /etc/cron.d/iostp\n";
         $cronFp = fopen("/etc/cron.d/iostp","w");
-        fwrite($cronFp,"*/5 * * * * xively /usr/bin/freshenData.php &>> /tmp/iostp-cron.log\n");
+        fwrite($cronFp,"*/5 * * * * xively /usr/bin/freshenData.php --include-non-live &>> /tmp/iostp-cron.log\n");
         fclose($cronFp);
         system("chmod u+x /usr/bin/freshenData.php");
     } else {
@@ -94,6 +94,7 @@ if(!$result) {
         fwrite($fp, "#!/usr/bin/php -q\n");
         fwrite($fp, "<?php \$schoolsCsvFile = \"/tmp/schools.csv\"; ?>");
         copy("../schools.csv", "/tmp/schools.csv");
+        system("chmod u+x /tmp/freshenData.php");
     }
     $header = file_get_contents("./constants.php");
     fwrite($fp, $header."\n");
