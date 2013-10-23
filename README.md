@@ -29,15 +29,15 @@ It can also be run within a Bitnami sandbox (for development purposes) as descri
 >   aws-info/Sandbox-Provisioning-Instructions.txt
 
 
-The basic idea is that different "observation kits" can be constructed by 3rd parties by implementing a "plugin"
+The basic concept in the architecture of this portal is that different "observation kits" can be constructed by 3rd parties by implementing a "plugin"
 as outlined in iostp/src/iostp/js/exampleKit.js
 
 Each of the plugins (traditionally installed in iostp/src/iostp/plugins/[myplugindir] is an equal party to the overall
 portal framework.  The portal framework will take care of the following functions:
 
->   a) User authentication and administration
->   b) Saving observation kit configuration data for each observation kit in defined by the user
->   c) Restoring the observation kit configurations each time the user logs in to the state it was at last use.
+* User authentication and administration
+* Saving observation kit configuration data for each observation kit in defined by the user
+* Restoring the observation kit configurations each time the user logs in to the state it was at last use.
 
 The portal plugin developer needs to be mindful that his plugin is playing in the same page with all other plugins as
 well as with other instances of his own plugin.  Therefore, it is usually wise to make the parent DOM node of the
