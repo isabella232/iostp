@@ -11,7 +11,7 @@ function startsWith($haystack, $needle)
 
 
 $longopts  = array(
-    "htdocs:",         // Required where htdocs root is 
+    "htdocs:",       // Required where htdocs root is
     "optional::",    // Optional value
     "dummyOpt1",     // No value
     "dummyOpt2",     // No value
@@ -21,11 +21,9 @@ $longopts  = array(
 $OPTIONS = getopt("r:",$longopts);
 
 $htdocs=false;
-if( $OPTIONS["htdocs"] ) {
+if( isset($OPTIONS["htdocs"]) ) {
    $htdocs = $OPTIONS["htdocs"];
-} 
-
-if( !$htdocs ) {
+} else {
    echo "Usage:  install.php --htdocs=[rootdir of htdocs]\n";
    exit();
 }
@@ -87,7 +85,7 @@ if(!$result) {
         copy("../schools.csv", "/usr/share/iostp/schools.csv");
         echo "Creating a crontab entry in /etc/cron.d/iostp\n";
         $cronFp = fopen("/etc/cron.d/iostp","w");
-        fwrite($cronFp,"*/5 * * * * xively /usr/bin/freshenData.php");
+        fwrite($cronFp,"*/5 * * * * xively /usr/bin/freshenData.php &>> /tmp/iostp-cron.log\n");
         fclose($cronFp);
         system("chmod u+x /usr/bin/freshenData.php");
     } else {
