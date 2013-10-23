@@ -39,7 +39,7 @@ portal framework.  The portal framework will take care of the following function
 * Saving observation kit configuration data for each observation kit in defined by the user
 * Restoring the observation kit configurations each time the user logs in to the state it was at last use.
 
-The portal plugin developer needs to be mindful that his plugin is playing in the same page with all other plugins as
+**Important** - The portal plugin developer needs to be mindful that his plugin is playing in the same page with all other plugins as
 well as with other instances of his own plugin.  Therefore, it is usually wise to make the parent DOM node of the
 plugins DOM elements to be a <div> with an id which is unique among all instances of his plugin.  Each plugin instance
 has a getId() method which returns an index which is globally unique and can be used to create a <div> tag with a
@@ -48,4 +48,15 @@ unique id string.
 See how we do this in the xively plugin where in getHtml() we return the parent tag:
 ```
          <div id="xivelyKit-'+this.getId()+'">
+```
+
+**Note** also that since multiple instances of a kit might be on the page at any one time, you will want to have some DOM elements deposited once per page and some created once per instance of the kit.
+You can see in the xively plugin where getHtml() returns the DOM elements that exist in each instance of a kit and per-page DOM elements are created via the following code which gets executed with the plugin javascript
+is loaded into the page:
+```
+$(function () {   // only include this once per page (not inside every kit instance
+   $("body").append('\
+     ...your DOM stuff here - loaded once per page load...
+   ');
+});
 ```
