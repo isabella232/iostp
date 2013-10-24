@@ -12,13 +12,27 @@ ExampleKit.prototype = Object.create(ObservationKit.prototype);  //inherit Obser
 
 ExampleKit.prototype.constructor = ExampleKit; //correct constructor prototype to point to ExampleKit
 
+/**
+ * The string given in the argument was retrieved from the database and is that value as of the last running of the portal.
+ * Our task here is to interpret this string and set our parameters.
+ * @param - {string} containing the state of this kit
+ */
 ExampleKit.prototype.setConfig = function(c) {
     this.myConfig = c;
 };
+
+/**
+ * Returns the config as a string (in our case, JSON) which will later be handed back to an instance to configure itself
+ * @returns - {string} describing the configuration of this kit
+ */
 ExampleKit.prototype.getConfig = function() {
     return this.myConfig;
 };
 
+/**
+ * return a clone of our kit to be used as an instance
+ * @returns {ExampleKit}
+ */
 ExampleKit.prototype.clone = function() {
     var other = new ExampleKit(this.getName());
     return other;
@@ -29,9 +43,13 @@ ExampleKit.prototype.getName = function() {
 };
 
 ExampleKit.prototype.getType = function() {
-    return "IOSTP Example Kit";
+    return "IOSTP Example Kit";  //shows in the UI when the user wants to create a new instance of an observation kit
 };
 
+/**
+ * the render() method lays out the DOM elements that define the instance of this observation kit
+ * @returns {*|jQuery|HTMLElement}
+ */
 ExampleKit.prototype.render = function() {
     return $('\
         <div id="exampleKit-'+this.getId()+'">\
@@ -67,7 +85,8 @@ ExampleKit.prototype.config = function() {
 IOSTP.getInstance().register( new ExampleKit());
 
 
-//onload stuff.................
+//onload script stuff.
+// usually, we setup page-global DOM elements here.
 $(function () {
 
 });

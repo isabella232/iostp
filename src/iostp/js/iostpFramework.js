@@ -30,9 +30,9 @@ ObservationKit.prototype = {
         this.id = i;
     },
 
-//    setConfig: function(data) {
-//        alert("ObservationKit.setConfig() should be overridden in subclass");
-//    },
+    setConfig: function(data) {
+        alert("ObservationKit.setConfig() should be overridden in subclass");
+    },
 
     config: function() {
         window.alert("ObservationKit.config() called - method should be overridden");
@@ -77,6 +77,20 @@ var IOSTP = (function () {   // declare 'Singleton' as the returned value of a s
             }
         },
 
+        resetTimeoutTimestamp: function() {
+            console.log("Resetting timeout timestamp");
+            $.ajax( {
+                    type: "POST",
+                    url: "/server/isSessionInactive.php",
+                    async: false,
+                    data: {
+                        username: $("#username").val(),
+                        token:    $("#token").val(),
+                        action:   "reset"
+                    }
+                }
+            );
+        },
         getKitTypes: function () {
             var types = [];
             $.each(this.kitRegistry, function (i, kit) {
@@ -234,15 +248,6 @@ $(function () {
     }, 30000);  //every 30 seconds
 
     // reset the timestamp on the server when page is first loaded.
-    $.ajax( {
-            type: "POST",
-            url: "/server/isSessionInactive.php",
-            async: false,
-            data: {
-                username: $("#username").val(),
-                token:    $("#token").val(),
-                action:   "reset"
-            }
-        }
-    );
+    IOSTP.getInstance().resetTimeoutTimestamp();
 });
+

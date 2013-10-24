@@ -32,6 +32,8 @@ It can also be run within a Bitnami sandbox (for development purposes) as descri
 The basic concept in the architecture of this portal is that different "observation kits" can be constructed by 3rd parties by implementing a "plugin"
 as outlined in iostp/src/iostp/js/exampleKit.js
 
+You can also use the xivelyKit.js as a guide but it is much more elaborate but shows how to handle things in getConfig(), setConfig() and config() which might not be so obvious in exampleKit.js
+
 Each of the plugins (traditionally installed in iostp/src/iostp/plugins/[myplugindir] is an equal party to the overall
 portal framework.  The portal framework will take care of the following functions:
 
@@ -45,7 +47,7 @@ plugins DOM elements to be a <div> with an id which is unique among all instance
 has a getId() method which returns an index which is globally unique and can be used to create a <div> tag with a
 unique id string.
 
-See how we do this in the xively plugin where in getHtml() we return the parent tag:
+See how we do this in the xively plugin where in getHtml() we return the parent tag as:
 ```
          <div id="xivelyKit-'+this.getId()+'">
 ```

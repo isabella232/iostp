@@ -18,6 +18,13 @@ XivelyKit.prototype.clone = function() {
     other.setId(this.getId());
     return other;
 };
+
+/**
+ * Returns the config as a string (in our case, JSON) which will later be handed back to an instance to configure itself
+ * In our case, we return back a structure containing all the datastream info, as well as the start/end time specified by
+ * the date controls.
+ * @returns - string describing the configuration of this kit
+ */
 XivelyKit.prototype.getConfig = function() {
     var tag = "#xivelyKit-"+this.getId();
     return JSON.stringify( {
@@ -26,6 +33,12 @@ XivelyKit.prototype.getConfig = function() {
         end:   $(tag+' .toTimestamp').datepicker('getDate')
     });
 };
+
+/**
+ * The string given in the argument was retrieved from the database and is that value as of the last running of the portal.
+ * Our task here is to interpret this string (in the xively case, the string is JSON) and set our parameters.
+ * @param - string containing the state of this kit
+ */
 XivelyKit.prototype.setConfig = function(c) {
     var stuff = JSON.parse(c);
     this.kitConfig = stuff.datastreams;
@@ -48,7 +61,7 @@ XivelyKit.prototype.getRickshawGraphs = function() {
         }
     }
     return arr;
-}
+};
 
 XivelyKit.prototype.getName = function() {
     return this.name;
@@ -58,6 +71,10 @@ XivelyKit.prototype.getType = function() {
     return "Xively Data Viewer";
 };
 
+/**
+ * the render() method lays out the DOM elements that define the instance of this observation kit
+ * @returns {*|jQuery|HTMLElement}
+ */
 XivelyKit.prototype.render = function() {
     var contents = $(this.getHtml());
     this.updateManageDSBtn()
@@ -115,6 +132,9 @@ XivelyKit.prototype.createAddDSDialog = function() {
     });
 
     $(myKit.tag+' .addDS').click(function(){
+
+        IOSTP.getInstance().resetTimeoutTimestamp();  //user did something... reset the timeout
+
         addDSDialog.dialog("open");
         addDSDialog.dialog("option","kit",myKit);
         $.getJSON('plugins/xively/getTags.json.php', function(data){
@@ -196,6 +216,9 @@ XivelyKit.prototype.createManageDSDialog = function() {
     });
 
     $(myKit.tag+' .manageDS').click(function(){
+
+        IOSTP.getInstance().resetTimeoutTimestamp();  //user did something... reset the timeout
+
         $("#manage_ds_select").empty();
         manageDSDialog.dialog("option","kit",myKit);
         manageDSDialog.dialog("open");
@@ -208,6 +231,9 @@ XivelyKit.prototype.createManageDSDialog = function() {
     });
 
     $(myKit.tag+' .downloadCSV').click(function(e){
+
+        IOSTP.getInstance().resetTimeoutTimestamp();  //user did something... reset the timeout
+
         e.preventDefault();
         var start = $(myKit.tag+' .fromTimestamp').datepicker('getDate');
         var end   = $(myKit.tag+' .toTimestamp').datepicker('getDate');
@@ -226,6 +252,9 @@ XivelyKit.prototype.createManageDSDialog = function() {
     });
 };
 
+/**
+ * The config() method does the heavy lifting of putting our kit into a useable state based on the data given to setConfig()
+ */
 XivelyKit.prototype.config = function() {
 
     this.tag = "#xivelyKit-"+this.getId();
@@ -301,7 +330,6 @@ XivelyKit.prototype.config = function() {
         this.kitConfig = cfg.datastreams;
         this.makeGraphs(this.kitConfig,new Date((new Date()).getTime()-6*60*60*1000),new Date());
     }
-
 
     return this;
 };
