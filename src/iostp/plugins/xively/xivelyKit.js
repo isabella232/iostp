@@ -368,7 +368,7 @@ IOSTP.getInstance().register( theKit );
 function Graph(i,kit) {
     this.index = i;
     //for help on colorblind colors, see  http://www.mrexcel.com/forum/lounge-v-2-0/374530-color-choices-colorblind-viewers.html
-    this.colorBlindColors = new Array("#F0E442","#0072B2","#D55E00","#CC79A7","#2B9578","#56B4E9","#E69F00","#000000");
+    this.colorBlindColors = new Array("#0072B2","#D55E00","#CC79A7","#2B9578","#56B4E9","#E69F00","#000000","#F0E442");
     this.colorBlindColorIndex = 0;
     this.datastreams = [];
     this.kit = kit;
