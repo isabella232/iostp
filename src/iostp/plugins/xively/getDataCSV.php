@@ -1,7 +1,7 @@
 <?php
 
 require_once('xively-php/vendors/com.rapiddigitalllc/xively/api.php');
-require_once("../constants.php");
+require_once("../../constants.php");
 
 /*
  * convert a date string to ISO-8601 date string (e.g. 2013-05-05T16:34:42+00:00)

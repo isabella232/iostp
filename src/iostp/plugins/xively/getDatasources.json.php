@@ -18,7 +18,7 @@ $tags = $_GET['tags'];
 
 
 
-$rawQuery = "select DATASTREAMS.UID as DS_UID, DATASTREAMS.UNITS AS UNITS, DATASTREAMS.SYMBOL AS SYMBOL FROM DATASTREAMS INNER JOIN DATASTREAM_TAG on DATASTREAM_TAG.DS_UID=DATASTREAMS.UID";
+$rawQuery = "select distinct DATASTREAMS.UID as DS_UID, DATASTREAMS.UNITS AS UNITS, DATASTREAMS.SYMBOL AS SYMBOL FROM DATASTREAMS INNER JOIN DATASTREAM_TAG on DATASTREAM_TAG.DS_UID=DATASTREAMS.UID";
 $rawQuery .=" WHERE (";
 
 $count = 0;
@@ -32,10 +32,11 @@ foreach( $tags as $tag ) {
 $arr = [];
 if( $count > 0 ) {
     $rawQuery = rtrim($rawQuery," OR ");
-    $rawQuery .= ") GROUP BY DS_UID HAVING COUNT(DS_UID) = ?";
-    $params[] = $count;
+    $rawQuery .= ")";
+//    $params[] = $count;
 
-    trigger_error($rawQuery,E_USER_NOTICE);
+    trigger_error("SQL:   ".$rawQuery, E_USER_NOTICE);
+
     $results = $_db->rawQuery($rawQuery,$params);
 
     foreach ($results as $row ) {
