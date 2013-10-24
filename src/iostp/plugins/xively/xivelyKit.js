@@ -27,8 +27,25 @@ XivelyKit.prototype.clone = function() {
  */
 XivelyKit.prototype.getConfig = function() {
     var tag = "#xivelyKit-"+this.getId();
+
+    // because graphs may have been deleted, we need to compact all the datastream 'index' numbers  so they are continuous
+    // with no gaps.
+    var map = [];
+    this.kitConfig.forEach( function(cfg) {
+        map[cfg.index] = true;
+    });
+    var count = 0;
+    map.forEach( function(m,idx) {
+        map[idx] = count++;
+    });
+    var savedKitConfig = this.kitConfig;
+    savedKitConfig.forEach( function(el) {
+       el.index = map[el.index];
+    });
+
+    // now we output it as a string
     return JSON.stringify( {
-        datastreams: this.kitConfig,
+        datastreams: savedKitConfig,
         start: $(tag+' .fromTimestamp').datepicker('getDate'),
         end:   $(tag+' .toTimestamp').datepicker('getDate')
     });
@@ -592,9 +609,17 @@ XivelyKit.prototype.addDatastream = function( cfg ) {
 
                             // Add Each Datapoint to Array
                             if( datastreamData.datapoints != undefined ) {
+                                if( new Date(datastreamData.datapoints[0].at).getTime() > start.getTime() ) {
+                                    points.push({x: start.getTime()/1000, y: parseFloat(datastreamData.datapoints[0].value)})
+                                }
                                 datastreamData.datapoints.forEach(function(datapoint) {
                                     points.push({x: new Date(datapoint.at).getTime()/1000.0, y: parseFloat(datapoint.value)});
                                 });
+                                if( new Date(datastreamData.datapoints[datastreamData.datapoints.length-1].at).getTime() < end.getTime() ) {
+//                                    console.log("added y="+ parseFloat(datastreamData.datapoints[datastreamData.datapoints.length-2].value));
+//                                    console.log("added y="+ parseFloat(datastreamData.datapoints[datastreamData.datapoints.length-1].value));
+                                    points.push({x: end.getTime()/1000, y: parseFloat(datastreamData.datapoints[datastreamData.datapoints.length-1].value)})
+                                }
                             } else {  // no data - need to put dummy stuff in there so that a graph can be displayed.
                                 points.push( {x: start.getTime()/1000, y:0.0});
                                 points.push( {x:   end.getTime()/1000, y:0.0});
@@ -760,8 +785,8 @@ XivelyKit.prototype.makeOptions = function (start, end) {
     var diff = end.getTime() - start.getTime();
     var options = {
         limit: 1000,
-        start: start,
-        end: end
+        start: start.toUTCString(),
+        end: end.toUTCString()
     };
     if( diff <= 6*60*60*1000 ) {
         options.interval = 22;                     //6 hours
@@ -827,9 +852,17 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
                             // Add Each Datapoint to Array
                             if( datastreamData.datapoints ) {
+                                if( new Date(datastreamData.datapoints[0].at).getTime() > start.getTime() ) {
+                                    points.push({x: start.getTime()/1000, y: parseFloat(datastreamData.datapoints[0].value)})
+                                }
                                 datastreamData.datapoints.forEach(function(datapoint) {
                                     points.push({x: new Date(datapoint.at).getTime()/1000.0, y: parseFloat(datapoint.value)});
                                 });
+                                if( new Date(datastreamData.datapoints[datastreamData.datapoints.length-1].at).getTime() < end.getTime() ) {
+//                                    console.log("added y="+ parseFloat(datastreamData.datapoints[datastreamData.datapoints.length-2].value));
+//                                    console.log("added y="+ parseFloat(datastreamData.datapoints[datastreamData.datapoints.length-1].value));
+                                    points.push({x: end.getTime()/1000, y: parseFloat(datastreamData.datapoints[datastreamData.datapoints.length-1].value)})
+                                }
                             } else {  // no data - need to put dummy stuff in there so that a graph can be displayed.
                                 points.push( {x: start.getTime()/1000, y:0.0});
                                 points.push( {x:   end.getTime()/1000, y:0.0});

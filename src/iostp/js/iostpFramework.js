@@ -106,8 +106,6 @@ var IOSTP = (function () {   // declare 'Singleton' as the returned value of a s
 
         /* returns a clone of a kit so it can be configured by the user */
         getKit: function (id) {
-           // return myClone(this.kitRegistry[id],true).setId(_instance.uniqueId++);
-//            return jQuery.extend(true, {}, this.kitRegistry[id]).setId(_instance.uniqueId++);
             return this.kitRegistry[id].clone().setId(_instance.uniqueId++);
         },
 
