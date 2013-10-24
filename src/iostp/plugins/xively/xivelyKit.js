@@ -133,7 +133,7 @@ XivelyKit.prototype.createAddDSDialog = function() {
 
     $(myKit.tag+' .addDS').click(function(){
 
-        IOSTP.getInstance().resetTimeoutTimestamp();  //user did something... reset the timeout
+        IOSTP.getInstance().resetLastKitSaveTimestamp();  //user did something... reset the timeout
 
         addDSDialog.dialog("open");
         addDSDialog.dialog("option","kit",myKit);
@@ -217,7 +217,7 @@ XivelyKit.prototype.createManageDSDialog = function() {
 
     $(myKit.tag+' .manageDS').click(function(){
 
-        IOSTP.getInstance().resetTimeoutTimestamp();  //user did something... reset the timeout
+        IOSTP.getInstance().resetLastKitSaveTimestamp();  //user did something... reset the timeout
 
         $("#manage_ds_select").empty();
         manageDSDialog.dialog("option","kit",myKit);
@@ -232,7 +232,7 @@ XivelyKit.prototype.createManageDSDialog = function() {
 
     $(myKit.tag+' .downloadCSV').click(function(e){
 
-        IOSTP.getInstance().resetTimeoutTimestamp();  //user did something... reset the timeout
+        IOSTP.getInstance().resetLastKitSaveTimestamp();  //user did something... reset the timeout
 
         e.preventDefault();
         var start = $(myKit.tag+' .fromTimestamp').datepicker('getDate');

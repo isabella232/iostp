@@ -77,7 +77,12 @@ var IOSTP = (function () {   // declare 'Singleton' as the returned value of a s
             }
         },
 
-        resetTimeoutTimestamp: function() {
+        /**
+         * Call this on every action which does not change the value returned by getConfig of the kits
+         * This updates the timestamp last_kit_save_stamp so that 'user activity' will be registered and the user
+         * won't be timed out of the system.
+         */
+        resetLastKitSaveTimestamp: function() {
             console.log("Resetting timeout timestamp");
             $.ajax( {
                     type: "POST",
@@ -86,7 +91,7 @@ var IOSTP = (function () {   // declare 'Singleton' as the returned value of a s
                     data: {
                         username: $("#username").val(),
                         token:    $("#token").val(),
-                        action:   "reset"
+                        action:   "reset"              //we're just resetting the timestamp
                     }
                 }
             );
@@ -248,6 +253,6 @@ $(function () {
     }, 30000);  //every 30 seconds
 
     // reset the timestamp on the server when page is first loaded.
-    IOSTP.getInstance().resetTimeoutTimestamp();
+    IOSTP.getInstance().resetLastKitSaveTimestamp();
 });
 
