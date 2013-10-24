@@ -496,6 +496,7 @@ Graph.prototype = {
         $(this.kit.tag+'-'+this.getId()+'-yAxis').empty();
         $(this.kit.tag+'-'+this.getId()+'-yAxisLabel').empty();
         this.empty = true;
+        this.colorBlindColorIndex = 0;
     },
 
     destroy: function() {
