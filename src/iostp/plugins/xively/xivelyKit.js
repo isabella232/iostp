@@ -372,6 +372,7 @@ function Graph(i,kit) {
     this.colorBlindColorIndex = 0;
     this.datastreams = [];
     this.kit = kit;
+    this.empty = true;
 }
 Graph.prototype = {
     getUnits: function() {
@@ -380,7 +381,12 @@ Graph.prototype = {
     setUnits: function(u) {
         this.units = u;
     },
-
+    hasData: function() {
+        this.empty = false;
+    },
+    isEmpty: function() {
+        return this.empty;
+    },
     getId: function() {
         return "graph-"+this.index;
     },
@@ -489,9 +495,9 @@ Graph.prototype = {
         $(this.kit.tag+'-'+this.getId()+'-legend').empty();
         $(this.kit.tag+'-'+this.getId()+'-yAxis').empty();
         $(this.kit.tag+'-'+this.getId()+'-yAxisLabel').empty();
-    //    $(this.kit.tag+'-graphWrapper-'+this.index).empty();
-
+        this.empty = true;
     },
+
     destroy: function() {
         this.getSlider().graph.remove(this.getRickshawGraph());
         this.clear();
@@ -609,6 +615,7 @@ XivelyKit.prototype.addDatastream = function( cfg ) {
 
                             // Add Each Datapoint to Array
                             if( datastreamData.datapoints != undefined ) {
+                                addToGraph.hasData();
                                 if( new Date(datastreamData.datapoints[0].at).getTime() > start.getTime() ) {
                                     points.push({x: start.getTime()/1000, y: parseFloat(datastreamData.datapoints[0].value)})
                                 }
@@ -644,7 +651,7 @@ XivelyKit.prototype.addDatastream = function( cfg ) {
                                     width: 600,
                                     height: 200,
                                     renderer: 'line',
-                                    min: ds_min_value,
+                                    min: addToGraph.isEmpty() ? 0.0 : ds_min_value,
                                     max: ds_max_value,
                                     padding: {
                                         top: 0.02,
@@ -852,6 +859,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
 
                             // Add Each Datapoint to Array
                             if( datastreamData.datapoints ) {
+                                graph.hasData();
                                 if( new Date(datastreamData.datapoints[0].at).getTime() > start.getTime() ) {
                                     points.push({x: start.getTime()/1000, y: parseFloat(datastreamData.datapoints[0].value)})
                                 }
@@ -889,7 +897,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                     width: 600,
                                     height: 200,
                                     renderer: 'line',
-                                    min: ds_min_value,
+                                    min: graph.isEmpty() ? 0.0 : ds_min_value,
                                     max: ds_max_value,
                                     padding: {
                                         top: 0.02,
@@ -906,7 +914,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                 series.color = graph.getNextColor();
                                 rickshawGraph = graph.getRickshawGraph();
                                 rickshawGraph.series.push(series);
-                                rickshawGraph.min = Math.min(rickshawGraph.min, ds_min_value);
+                                rickshawGraph.min = graph.isEmpty() ? 0.0 : Math.min(rickshawGraph.min, ds_min_value);
                                 rickshawGraph.max = Math.max(rickshawGraph.max, ds_max_value);
                                 rickshawGraph.update();
                             }
