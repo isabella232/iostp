@@ -651,7 +651,7 @@ XivelyKit.prototype.addDatastream = function( cfg ) {
                                     element: document.querySelector(myKit.tag+'-'+addToGraph.getId()),
                                     width: 600,
                                     height: 200,
-                                    renderer: 'linear',
+                                    renderer: 'line',
                                     min: addToGraph.isEmpty() ? 0.0 : ds_min_value,
                                     max: ds_max_value,
                                     padding: {
@@ -897,7 +897,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                     element: document.querySelector(myKit.tag+'-'+graph.getId()),
                                     width: 600,
                                     height: 200,
-                                    renderer: 'linear',
+                                    renderer: 'line',
                                     min: graph.isEmpty() ? 0.0 : ds_min_value,
                                     max: ds_max_value,
                                     padding: {
