@@ -652,6 +652,7 @@ XivelyKit.prototype.addDatastream = function( cfg ) {
                                     width: 600,
                                     height: 200,
                                     renderer: 'line',
+                                    interpolation: "linear",
                                     min: addToGraph.isEmpty() ? 0.0 : ds_min_value,
                                     max: ds_max_value,
                                     padding: {
@@ -898,6 +899,7 @@ XivelyKit.prototype.makeGraphs = function(configData, start, end) {
                                     width: 600,
                                     height: 200,
                                     renderer: 'line',
+                                    interpolation: "linear",
                                     min: graph.isEmpty() ? 0.0 : ds_min_value,
                                     max: ds_max_value,
                                     padding: {
